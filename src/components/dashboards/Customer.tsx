@@ -6,7 +6,7 @@ const Dashboard: React.FC = () => {
       {/* Navigation Bar */}
       <nav className="bg-blue-600 text-white p-4 shadow-lg">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold">E-Commerce Dashboard</h1>
+          <h1 className="text-xl font-bold">E-Commerce Dashboard 1</h1>
           <button className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600">
             Logout
           </button>
