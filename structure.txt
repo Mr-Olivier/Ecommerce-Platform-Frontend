@@ -1,0 +1,68 @@
+src/
+├── assets/                          # Static assets like images, logos, and icons
+│   ├── images/
+│   │   ├── smartphone-x.jpg
+│   │   ├── wireless-headphones.jpg
+│   │   ├── smart-tv.jpg
+│   └── icons/
+│       ├── cart-icon.svg
+│       ├── user-icon.svg
+│       ├── search-icon.svg
+├── components/                      # Reusable UI components
+│   ├── Header.tsx                   # Navigation bar
+│   ├── Footer.tsx                   # Footer section
+│   ├── ProductList.tsx              # Product listing component
+│   ├── ProductCard.tsx              # Individual product card
+│   ├── SearchBar.tsx                # Search bar component
+│   ├── CategoryFilter.tsx           # Filter by category
+│   ├── Pagination.tsx               # Pagination for product list
+│   ├── Cart/                        # Shopping cart-related components
+│   │   ├── CartSummary.tsx          # Cart summary component
+│   │   ├── CartItem.tsx             # Individual cart item
+│   │   └── CartPage.tsx             # Cart page component
+│   └── Modals/                      # Modal components
+│       ├── LoginModal.tsx           # Modal for login
+│       ├── SignupModal.tsx          # Modal for signup
+├── pages/                           # Pages for routing
+│   ├── LandingPage.tsx              # Landing page
+│   ├── ProductDetailsPage.tsx       # Product details page
+│   ├── CartPage.tsx                 # Shopping cart page
+│   ├── LoginForm.tsx                # Login page
+│   ├── SignUpForm.tsx               # Signup page
+│   ├── CheckoutPage.tsx             # Checkout page
+│   ├── AdminDashboard.tsx           # Admin dashboard
+│   └── UserDashboard.tsx            # User dashboard
+├── services/                        # API service calls
+│   ├── productService.ts            # Fetch product data
+│   ├── authService.ts               # Handle authentication
+│   ├── cartService.ts               # Manage cart operations
+│   ├── orderService.ts              # Manage orders
+├── hooks/                           # Custom React hooks
+│   ├── useAuth.ts                   # Authentication hook
+│   ├── useCart.ts                   # Manage cart state
+│   └── useProducts.ts               # Fetch and manage products
+├── contexts/                        # React context for global state
+│   ├── AuthContext.tsx              # Authentication context
+│   ├── CartContext.tsx              # Cart state context
+│   └── ProductContext.tsx           # Product-related state
+├── layouts/                         # Layouts for different pages
+│   ├── MainLayout.tsx               # General layout (header, footer)
+│   └── AdminLayout.tsx              # Layout for admin pages
+├── styles/                          # Global and component-specific styles
+│   ├── index.css                    # Tailwind base styles
+│   ├── variables.css                # CSS variables (colors, typography)
+│   └── custom-styles.css            # Additional custom styles
+├── App.tsx                          # App entry point
+├── index.tsx                        # React DOM entry point
+├── routes/                          # Application routes
+│   ├── AppRoutes.tsx                # Defines routes for the app
+│   └── ProtectedRoute.tsx           # Higher-order component for protected routes
+├── utils/                           # Utility functions
+│   ├── validators.ts                # Form validation functions
+│   ├── formatCurrency.ts            # Format numbers as currency
+│   ├── generateID.ts                # Generate unique IDs
+│   └── debounce.ts                  # Debounce function for search
+└── config/                          # Configuration files
+    ├── apiConfig.ts                 # API base URL and endpoints
+    ├── constants.ts                 # Application constants
+    └── env.d.ts                     # TypeScript environment variables
