@@ -199,7 +199,7 @@ const SignUpForm: React.FC = () => {
 
         <p className="text-sm text-center mt-4">
           Already have an account?{" "}
-          <Link to="/" className="text-blue-500 hover:underline">
+          <Link to="/login" className="text-blue-500 hover:underline">
             Login
           </Link>
         </p>
