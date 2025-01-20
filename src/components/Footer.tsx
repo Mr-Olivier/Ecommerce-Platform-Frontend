@@ -1,4 +1,17 @@
 import React from "react";
+import {
+  FaPhoneAlt,
+  FaEnvelope,
+  FaMapMarkerAlt,
+  FaArrowUp,
+} from "react-icons/fa";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaTwitter,
+  FaLinkedinIn,
+} from "react-icons/fa";
+import { MdSend } from "react-icons/md";
 
 const Footer: React.FC = () => {
   return (
@@ -9,15 +22,15 @@ const Footer: React.FC = () => {
           <h3 className="text-xl font-bold text-yellow-300 mb-4">Contact Us</h3>
           <ul className="space-y-2">
             <li className="flex items-center">
-              <i className="fas fa-phone-alt text-yellow-300 mr-2"></i>
+              <FaPhoneAlt className="text-yellow-300 mr-2" />
               <span>+123 456 789</span>
             </li>
             <li className="flex items-center">
-              <i className="fas fa-envelope text-yellow-300 mr-2"></i>
+              <FaEnvelope className="text-yellow-300 mr-2" />
               <span>info@ecommerce.com</span>
             </li>
             <li className="flex items-center">
-              <i className="fas fa-map-marker-alt text-yellow-300 mr-2"></i>
+              <FaMapMarkerAlt className="text-yellow-300 mr-2" />
               <span>123 Main Street, Kigali, Rwanda</span>
             </li>
           </ul>
@@ -32,16 +45,16 @@ const Footer: React.FC = () => {
           </p>
           <div className="flex space-x-4 mt-4">
             <a href="#" className="hover:opacity-75">
-              <i className="fab fa-facebook-f text-2xl text-yellow-300"></i>
+              <FaFacebookF className="text-2xl text-yellow-300" />
             </a>
             <a href="#" className="hover:opacity-75">
-              <i className="fab fa-instagram text-2xl text-yellow-300"></i>
+              <FaInstagram className="text-2xl text-yellow-300" />
             </a>
             <a href="#" className="hover:opacity-75">
-              <i className="fab fa-twitter text-2xl text-yellow-300"></i>
+              <FaTwitter className="text-2xl text-yellow-300" />
             </a>
             <a href="#" className="hover:opacity-75">
-              <i className="fab fa-linkedin-in text-2xl text-yellow-300"></i>
+              <FaLinkedinIn className="text-2xl text-yellow-300" />
             </a>
           </div>
         </div>
@@ -103,7 +116,7 @@ const Footer: React.FC = () => {
               className="w-full p-2 rounded-l-md focus:outline-none text-black"
             />
             <button className="bg-yellow-400 text-black p-2 rounded-r-md hover:bg-yellow-500">
-              <span className="material-icons">send</span>
+              <MdSend className="text-lg" />
             </button>
           </form>
         </div>
@@ -115,7 +128,7 @@ const Footer: React.FC = () => {
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="bg-yellow-400 text-black p-3 rounded-full shadow-lg hover:bg-yellow-500"
         >
-          <i className="fas fa-arrow-up"></i>
+          <FaArrowUp />
         </button>
       </div>
 
