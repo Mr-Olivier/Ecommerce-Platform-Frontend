@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { FiMenu, FiX } from "react-icons/fi"; // Import menu and close icons
+import { MdEmail, MdPhone } from "react-icons/md"; // Example for contact-related icons
 import logo from "../assets/logo.jpg";
 
 const Header: React.FC = () => {
@@ -11,7 +13,7 @@ const Header: React.FC = () => {
         {/* Logo */}
         <div className="flex items-center space-x-4">
           <img
-            src={logo} // Replace with your actual logo file path
+            src={logo} // Path to your logo image
             alt="Logo"
             className="w-10 h-10"
           />
@@ -23,9 +25,7 @@ const Header: React.FC = () => {
           className="md:hidden text-yellow-300"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
-          <i
-            className={`fas ${isMenuOpen ? "fa-times" : "fa-bars"} text-2xl`}
-          ></i>
+          {isMenuOpen ? <FiX size={28} /> : <FiMenu size={28} />}
         </button>
 
         {/* Desktop Navigation Links */}
@@ -64,12 +64,15 @@ const Header: React.FC = () => {
       {/* Mobile Navigation Links */}
       {isMenuOpen && (
         <div className="md:hidden bg-navy text-white fixed top-0 left-0 w-full h-full z-50 p-6">
+          {/* Close Button */}
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="absolute top-4 right-4 text-yellow-300 text-3xl"
+            className="absolute top-4 right-4 text-yellow-300"
           >
-            <i className="fas fa-times"></i>
+            <FiX size={36} />
           </button>
+
+          {/* Navigation Links */}
           <ul className="flex flex-col items-center justify-center space-y-6 mt-20">
             <li>
               <a
