@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi"; // Import menu and close icons
-import { MdEmail, MdPhone } from "react-icons/md"; // Example for contact-related icons
+// import { MdEmail, MdPhone } from "react-icons/md"; // Example for contact-related icons
 import logo from "../assets/logo.jpg";
 
 const Header: React.FC = () => {
