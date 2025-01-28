@@ -1,34 +1,201 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import { CartProvider } from "./context/CartContext";
+// import { WishlistProvider } from "./context/WishlistContext";
+// import LandingPage from "./pages";
+
+// function App() {
+//   return (
+//     <CartProvider>
+//       <WishlistProvider>
+//         <Router>
+//           <Routes>
+//             <Route path="/" element={<LandingPage />} />
+
+//             {/* Add other routes here */}
+//           </Routes>
+//         </Router>
+//       </WishlistProvider>
+//     </CartProvider>
+//   );
+// }
+
+// export default App;
+
+// // src/App.tsx
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import { CartProvider } from "./context/CartContext";
+// import { WishlistProvider } from "./context/WishlistProvider";
+// import { AuthProvider } from "./context/AuthContext";
+// import LandingPage from "./pages";
+// import LoginPage from "./pages/auth/login";
+// import RegisterPage from "./pages/auth/register";
+// import ForgotPasswordPage from "./pages/auth/forgot-password";
+// import ProductsPage from "./pages/products";
+// import ProductDetailsPage from "./pages/products/[id]";
+// import CartPage from "./pages/cart";
+// import CheckoutPage from "./pages/checkout";
+// import UserProfilePage from "./pages/user/profile";
+// import UserOrdersPage from "./pages/user/orders";
+// import UserWishlistPage from "./pages/user/wishlist";
+// import AdminDashboard from "./pages/admin";
+// import AdminProducts from "./pages/admin/products";
+// import AdminOrders from "./pages/admin/orders";
+// import AdminAnalytics from "./pages/admin/analytics";
+
+// function App() {
+//   return (
+//     <AuthProvider>
+//       <CartProvider>
+//         <WishlistProvider>
+//           <Router>
+//             <Routes>
+//               {/* Public Routes */}
+//               <Route path="/" element={<LandingPage />} />
+//               <Route path="/login" element={<LoginPage />} />
+//               <Route path="/register" element={<RegisterPage />} />
+//               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+//               <Route path="/products" element={<ProductsPage />} />
+//               <Route path="/products/:id" element={<ProductDetailsPage />} />
+
+//               {/* Protected User Routes */}
+//               <Route path="/cart" element={<CartPage />} />
+//               <Route path="/checkout" element={<CheckoutPage />} />
+//               <Route path="/user/profile" element={<UserProfilePage />} />
+//               <Route path="/user/orders" element={<UserOrdersPage />} />
+//               <Route path="/user/wishlist" element={<UserWishlistPage />} />
+
+//               {/* Protected Admin Routes */}
+//               <Route path="/admin" element={<AdminDashboard />} />
+//               <Route path="/admin/products" element={<AdminProducts />} />
+//               <Route path="/admin/orders" element={<AdminOrders />} />
+//               <Route path="/admin/analytics" element={<AdminAnalytics />} />
+//             </Routes>
+//           </Router>
+//         </WishlistProvider>
+//       </CartProvider>
+//     </AuthProvider>
+//   );
+// }
+
+// export default App;
+
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
+import { AuthProvider } from "./context/AuthContext";
+import LandingPage from "./pages";
+import Login from "./pages/auth/Login";
+import RegisterPage from "./pages/auth/register";
+import ForgotPasswordPage from "./pages/auth/forgot-password";
+// import ProductsPage from "./pages/products";
+// import ProductDetailsPage from "./pages/products/[id]";
+// import CartPage from "./pages/cart";
+// import CheckoutPage from "./pages/checkout";
+// import UserProfilePage from "./pages/user/profile";
+// import UserOrdersPage from "./pages/user/orders";
+// import UserWishlistPage from "./pages/user/wishlist";
+// import AdminDashboard from "./pages/admin";
+// import AdminProducts from "./pages/admin/products";
+// import AdminOrders from "./pages/admin/orders";
+// import AdminAnalytics from "./pages/admin/analytics";
+
+// import ProtectedRoute from "./components/Auth/ProtectedRoute";
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <AuthProvider>
+      <CartProvider>
+        <WishlistProvider>
+          <Router>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              {/* <Route path="/products" element={<ProductsPage />} />
+              <Route path="/products/:id" element={<ProductDetailsPage />} /> */}
+
+              {/* Protected User Routes */}
+              {/* <Route
+                path="/cart"
+                element={
+                  <ProtectedRoute>
+                    <CartPage />
+                  </ProtectedRoute>
+                }
+              /> */}
+              {/* <Route
+                path="/checkout"
+                element={
+                  <ProtectedRoute>
+                    <CheckoutPage />
+                  </ProtectedRoute>
+                }
+              /> */}
+              {/* <Route
+                path="/user/profile"
+                element={
+                  <ProtectedRoute>
+                    <UserProfilePage />
+                  </ProtectedRoute>
+                }
+              /> */}
+              {/* <Route
+                path="/user/orders"
+                element={
+                  <ProtectedRoute>
+                    <UserOrdersPage />
+                  </ProtectedRoute>
+                }
+              /> */}
+              {/* <Route
+                path="/user/wishlist"
+                element={
+                  <ProtectedRoute>
+                    <UserWishlistPage />
+                  </ProtectedRoute>
+                }
+              /> */}
+
+              {/* Protected Admin Routes */}
+              {/* <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              /> */}
+              {/* <Route
+                path="/admin/products"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminProducts />
+                  </ProtectedRoute>
+                }
+              /> */}
+              {/* <Route
+                path="/admin/orders"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminOrders />
+                  </ProtectedRoute>
+                }
+              /> */}
+              {/* <Route
+                path="/admin/analytics"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminAnalytics />
+                  </ProtectedRoute>
+                }
+              /> */}
+            </Routes>
+          </Router>
+        </WishlistProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 }
 
