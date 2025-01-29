@@ -5,11 +5,11 @@ import LoginForm from "../../components/Auth/LoginForm12";
 const LoginPage = () => {
   return (
     <AuthWrapper
-      title="Welcome back"
-      subtitle="Sign in to your account"
-      alternativeText="Don't have an account?"
+      title=""
+      subtitle=""
+      alternativeText=""
       alternativeLink="/register"
-      alternativeLinkText="Sign up"
+      alternativeLinkText=""
     >
       <LoginForm />
     </AuthWrapper>

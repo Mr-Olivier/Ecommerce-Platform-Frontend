@@ -5,11 +5,11 @@ import RegisterForm from "../../components/Auth/RegisterForm";
 const RegisterPage = () => {
   return (
     <AuthWrapper
-      title="Create an account"
-      subtitle="Start your shopping journey"
-      alternativeText="Already have an account?"
+      title=""
+      subtitle=""
+      alternativeText=""
       alternativeLink="/login"
-      alternativeLinkText="Sign in"
+      alternativeLinkText=""
     >
       <RegisterForm />
     </AuthWrapper>

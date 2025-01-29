@@ -79,27 +79,182 @@
 
 // export default App;
 
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import { CartProvider } from "./context/CartContext";
+// import { WishlistProvider } from "./context/WishlistContext";
+// import { AuthProvider } from "./context/AuthContext";
+// import LandingPage from "./pages";
+// import Login from "./pages/auth/Login";
+// import RegisterPage from "./pages/auth/register";
+// import ForgotPasswordPage from "./pages/auth/forgot-password";
+// // import ProductsPage from "./pages/products";
+// // import ProductDetailsPage from "./pages/products/[id]";
+// // import CartPage from "./pages/cart";
+// // import CheckoutPage from "./pages/checkout";
+// // import UserProfilePage from "./pages/user/profile";
+// // import UserOrdersPage from "./pages/user/orders";
+// // import UserWishlistPage from "./pages/user/wishlist";
+// // import AdminDashboard from "./pages/admin";
+// // import AdminProducts from "./pages/admin/products";
+// // import AdminOrders from "./pages/admin/orders";
+// // import AdminAnalytics from "./pages/admin/analytics";
+
+// // import ProtectedRoute from "./components/Auth/ProtectedRoute";
+
+// function App() {
+//   return (
+//     <AuthProvider>
+//       <CartProvider>
+//         <WishlistProvider>
+//           <Router>
+//             <Routes>
+//               {/* Public Routes */}
+//               <Route path="/" element={<LandingPage />} />
+//               <Route path="/login" element={<Login />} />
+//               <Route path="/register" element={<RegisterPage />} />
+//               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+//               {/* <Route path="/products" element={<ProductsPage />} />
+//               <Route path="/products/:id" element={<ProductDetailsPage />} /> */}
+
+//               {/* Protected User Routes */}
+//               {/* <Route
+//                 path="/cart"
+//                 element={
+//                   <ProtectedRoute>
+//                     <CartPage />
+//                   </ProtectedRoute>
+//                 }
+//               /> */}
+//               {/* <Route
+//                 path="/checkout"
+//                 element={
+//                   <ProtectedRoute>
+//                     <CheckoutPage />
+//                   </ProtectedRoute>
+//                 }
+//               /> */}
+//               {/* <Route
+//                 path="/user/profile"
+//                 element={
+//                   <ProtectedRoute>
+//                     <UserProfilePage />
+//                   </ProtectedRoute>
+//                 }
+//               /> */}
+//               {/* <Route
+//                 path="/user/orders"
+//                 element={
+//                   <ProtectedRoute>
+//                     <UserOrdersPage />
+//                   </ProtectedRoute>
+//                 }
+//               /> */}
+//               {/* <Route
+//                 path="/user/wishlist"
+//                 element={
+//                   <ProtectedRoute>
+//                     <UserWishlistPage />
+//                   </ProtectedRoute>
+//                 }
+//               /> */}
+
+//               {/* Protected Admin Routes */}
+//               {/* <Route
+//                 path="/admin"
+//                 element={
+//                   <ProtectedRoute adminOnly>
+//                     <AdminDashboard />
+//                   </ProtectedRoute>
+//                 }
+//               /> */}
+//               {/* <Route
+//                 path="/admin/products"
+//                 element={
+//                   <ProtectedRoute adminOnly>
+//                     <AdminProducts />
+//                   </ProtectedRoute>
+//                 }
+//               /> */}
+//               {/* <Route
+//                 path="/admin/orders"
+//                 element={
+//                   <ProtectedRoute adminOnly>
+//                     <AdminOrders />
+//                   </ProtectedRoute>
+//                 }
+//               /> */}
+//               {/* <Route
+//                 path="/admin/analytics"
+//                 element={
+//                   <ProtectedRoute adminOnly>
+//                     <AdminAnalytics />
+//                   </ProtectedRoute>
+//                 }
+//               /> */}
+//             </Routes>
+//           </Router>
+//         </WishlistProvider>
+//       </CartProvider>
+//     </AuthProvider>
+//   );
+// }
+
+// export default App;
+
+// src/App.tsx
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import { CartProvider } from "./context/CartContext";
+// import { WishlistProvider } from "./context/WishlistContext";
+// import { AuthProvider } from "./context/AuthContext";
+// import Layout from "./components/common/Layout";
+
+// // Pages
+// import LandingPage from "./pages";
+// import LoginPage from "./pages/auth/Login";
+// import RegisterPage from "./pages/auth/register";
+// import ForgotPasswordPage from "./pages/auth/forgot-password";
+// import AdminDashboard from "./pages/admin";
+
+// function App() {
+//   return (
+//     <AuthProvider>
+//       <CartProvider>
+//         <WishlistProvider>
+//           <Router>
+//             <Layout>
+//               <Routes>
+//                 <Route path="/" element={<LandingPage />} />
+//                 <Route path="/login" element={<LoginPage />} />
+//                 <Route path="/register" element={<RegisterPage />} />
+//                 <Route
+//                   path="/forgot-password"
+//                   element={<ForgotPasswordPage />}
+//                 />
+//                 <Route path="/admin" element={<AdminDashboard />} />
+//                 {/* Add other routes here */}
+//               </Routes>
+//             </Layout>
+//           </Router>
+//         </WishlistProvider>
+//       </CartProvider>
+//     </AuthProvider>
+//   );
+// }
+
+// export default App;
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { AuthProvider } from "./context/AuthContext";
+import Layout from "./components/common/Layout";
+
+// Pages
 import LandingPage from "./pages";
-import Login from "./pages/auth/Login";
+import LoginPage from "./pages/auth/Login";
 import RegisterPage from "./pages/auth/register";
 import ForgotPasswordPage from "./pages/auth/forgot-password";
-// import ProductsPage from "./pages/products";
-// import ProductDetailsPage from "./pages/products/[id]";
-// import CartPage from "./pages/cart";
-// import CheckoutPage from "./pages/checkout";
-// import UserProfilePage from "./pages/user/profile";
-// import UserOrdersPage from "./pages/user/orders";
-// import UserWishlistPage from "./pages/user/wishlist";
-// import AdminDashboard from "./pages/admin";
-// import AdminProducts from "./pages/admin/products";
-// import AdminOrders from "./pages/admin/orders";
-// import AdminAnalytics from "./pages/admin/analytics";
-
-// import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import AdminDashboard from "./pages/admin";
 
 function App() {
   return (
@@ -108,89 +263,40 @@ function App() {
         <WishlistProvider>
           <Router>
             <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              {/* <Route path="/products" element={<ProductsPage />} />
-              <Route path="/products/:id" element={<ProductDetailsPage />} /> */}
-
-              {/* Protected User Routes */}
-              {/* <Route
-                path="/cart"
+              <Route
+                path="/"
                 element={
-                  <ProtectedRoute>
-                    <CartPage />
-                  </ProtectedRoute>
+                  <Layout>
+                    <LandingPage />
+                  </Layout>
                 }
-              /> */}
-              {/* <Route
-                path="/checkout"
+              />
+              <Route
+                path="/login"
                 element={
-                  <ProtectedRoute>
-                    <CheckoutPage />
-                  </ProtectedRoute>
+                  <Layout>
+                    <LoginPage />
+                  </Layout>
                 }
-              /> */}
-              {/* <Route
-                path="/user/profile"
+              />
+              <Route
+                path="/register"
                 element={
-                  <ProtectedRoute>
-                    <UserProfilePage />
-                  </ProtectedRoute>
+                  <Layout>
+                    <RegisterPage />
+                  </Layout>
                 }
-              /> */}
-              {/* <Route
-                path="/user/orders"
+              />
+              <Route
+                path="/forgot-password"
                 element={
-                  <ProtectedRoute>
-                    <UserOrdersPage />
-                  </ProtectedRoute>
+                  <Layout>
+                    <ForgotPasswordPage />
+                  </Layout>
                 }
-              /> */}
-              {/* <Route
-                path="/user/wishlist"
-                element={
-                  <ProtectedRoute>
-                    <UserWishlistPage />
-                  </ProtectedRoute>
-                }
-              /> */}
-
-              {/* Protected Admin Routes */}
-              {/* <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              /> */}
-              {/* <Route
-                path="/admin/products"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <AdminProducts />
-                  </ProtectedRoute>
-                }
-              /> */}
-              {/* <Route
-                path="/admin/orders"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <AdminOrders />
-                  </ProtectedRoute>
-                }
-              /> */}
-              {/* <Route
-                path="/admin/analytics"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <AdminAnalytics />
-                  </ProtectedRoute>
-                }
-              /> */}
+              />
+              <Route path="/admin" element={<AdminDashboard />} />
+              {/* Add other routes here */}
             </Routes>
           </Router>
         </WishlistProvider>
