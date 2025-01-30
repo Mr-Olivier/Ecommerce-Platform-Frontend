@@ -243,18 +243,92 @@
 
 // export default App;
 
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import { CartProvider } from "./context/CartContext";
+// import { WishlistProvider } from "./context/WishlistContext";
+// import { AuthProvider } from "./context/AuthContext";
+// import Layout from "./components/common/Layout";
+
+// // Pages
+// import LandingPage from "./pages";
+// import LoginPage from "./pages/auth/Login";
+// import RegisterPage from "./pages/auth/register";
+// import ForgotPasswordPage from "./pages/auth/forgot-password";
+// import AdminDashboard from "./pages/admin";
+
+// function App() {
+//   return (
+//     <AuthProvider>
+//       <CartProvider>
+//         <WishlistProvider>
+//           <Router>
+//             <Routes>
+//               <Route
+//                 path="/"
+//                 element={
+//                   <Layout>
+//                     <LandingPage />
+//                   </Layout>
+//                 }
+//               />
+//               <Route
+//                 path="/login"
+//                 element={
+//                   <Layout>
+//                     <LoginPage />
+//                   </Layout>
+//                 }
+//               />
+//               <Route
+//                 path="/register"
+//                 element={
+//                   <Layout>
+//                     <RegisterPage />
+//                   </Layout>
+//                 }
+//               />
+//               <Route
+//                 path="/forgot-password"
+//                 element={
+//                   <Layout>
+//                     <ForgotPasswordPage />
+//                   </Layout>
+//                 }
+//               />
+//               <Route path="/admin" element={<AdminDashboard />} />
+//               {/* Add other routes here */}
+//             </Routes>
+//           </Router>
+//         </WishlistProvider>
+//       </CartProvider>
+//     </AuthProvider>
+//   );
+// }
+
+// export default App;
+
+// App.tsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { AuthProvider } from "./context/AuthContext";
 import Layout from "./components/common/Layout";
+import AdminLayout from "./components/dashboards/AdminLayout";
 
 // Pages
 import LandingPage from "./pages";
 import LoginPage from "./pages/auth/Login";
 import RegisterPage from "./pages/auth/register";
 import ForgotPasswordPage from "./pages/auth/forgot-password";
+
+// Admin Pages
 import AdminDashboard from "./pages/admin";
+import ProductManagement from "./pages/admin/products";
+// import UserManagement from "./pages/admin/users";
+// import OrderManagement from "./pages/admin/orders";
+// import AnalyticsDashboard from "./pages/admin/analytics";
+// import InventoryManager from "./pages/admin/inventory";
+// import PromotionsManager from "./pages/admin/promotions";
 
 function App() {
   return (
@@ -263,14 +337,8 @@ function App() {
         <WishlistProvider>
           <Router>
             <Routes>
-              <Route
-                path="/"
-                element={
-                  <Layout>
-                    <LandingPage />
-                  </Layout>
-                }
-              />
+              {/* Public Routes with Main Layout */}
+              <Route path="/" element={<LandingPage />} />
               <Route
                 path="/login"
                 element={
@@ -295,8 +363,17 @@ function App() {
                   </Layout>
                 }
               />
-              <Route path="/admin" element={<AdminDashboard />} />
-              {/* Add other routes here */}
+
+              {/* Admin Routes with Admin Layout */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="products" element={<ProductManagement />} />
+                {/* <Route path="users" element={<UserManagement />} />
+                <Route path="orders" element={<OrderManagement />} />
+                <Route path="analytics" element={<AnalyticsDashboard />} />
+                <Route path="inventory" element={<InventoryManager />} />
+                <Route path="promotions" element={<PromotionsManager />} /> */}
+              </Route>
             </Routes>
           </Router>
         </WishlistProvider>
