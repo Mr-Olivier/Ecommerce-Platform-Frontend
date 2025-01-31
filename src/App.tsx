@@ -324,11 +324,11 @@ import ForgotPasswordPage from "./pages/auth/forgot-password";
 // Admin Pages
 import AdminDashboard from "./pages/admin";
 import ProductManagement from "./pages/admin/products";
-// import UserManagement from "./pages/admin/users";
-// import OrderManagement from "./pages/admin/orders";
-// import AnalyticsDashboard from "./pages/admin/analytics";
-// import InventoryManager from "./pages/admin/inventory";
-// import PromotionsManager from "./pages/admin/promotions";
+import UserManagement from "./pages/admin/users";
+import OrderManagement from "./pages/admin/orders";
+import AnalyticsDashboard from "./pages/admin/analytics";
+import InventoryManager from "./pages/admin/inventory";
+import PromotionsManager from "./pages/admin/promotions";
 
 function App() {
   return (
@@ -368,11 +368,11 @@ function App() {
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="products" element={<ProductManagement />} />
-                {/* <Route path="users" element={<UserManagement />} />
+                <Route path="users" element={<UserManagement />} />
                 <Route path="orders" element={<OrderManagement />} />
                 <Route path="analytics" element={<AnalyticsDashboard />} />
                 <Route path="inventory" element={<InventoryManager />} />
-                <Route path="promotions" element={<PromotionsManager />} /> */}
+                <Route path="promotions" element={<PromotionsManager />} />
               </Route>
             </Routes>
           </Router>
