@@ -87,7 +87,12 @@ const RegisterForm = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        await register(formData);
+        await register(
+          formData.email,
+          formData.password,
+          formData.firstName,
+          formData.lastName
+        );
         navigate("/");
       } catch (error) {
         setErrors({
