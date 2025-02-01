@@ -322,6 +322,12 @@ import LoginPage from "./pages/auth/Login";
 import RegisterPage from "./pages/auth/register";
 import ForgotPasswordPage from "./pages/auth/forgot-password";
 import CartPage from "./pages/cart";
+import CheckoutPage from "./pages/checkout";
+import ConfirmationPage from "./pages/checkout/confirmation";
+
+// Product Pages
+import ProductListingPage from "./pages/products";
+import ProductDetailPage from "./pages/products/[id]";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin";
@@ -371,6 +377,42 @@ function App() {
                   element={
                     <Layout>
                       <CartPage />
+                    </Layout>
+                  }
+                />
+
+                {/* Product Routes */}
+                <Route
+                  path="/products"
+                  element={
+                    <Layout>
+                      <ProductListingPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/products/:id"
+                  element={
+                    <Layout>
+                      <ProductDetailPage />
+                    </Layout>
+                  }
+                />
+
+                {/* Checkout Routes */}
+                <Route
+                  path="/checkout"
+                  element={
+                    <Layout>
+                      <CheckoutPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/checkout/confirmation"
+                  element={
+                    <Layout>
+                      <ConfirmationPage />
                     </Layout>
                   }
                 />
