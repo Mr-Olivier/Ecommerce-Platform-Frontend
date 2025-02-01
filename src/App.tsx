@@ -309,6 +309,7 @@
 
 // App.tsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -320,6 +321,7 @@ import LandingPage from "./pages";
 import LoginPage from "./pages/auth/Login";
 import RegisterPage from "./pages/auth/register";
 import ForgotPasswordPage from "./pages/auth/forgot-password";
+import CartPage from "./pages/cart";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin";
@@ -332,53 +334,63 @@ import PromotionsManager from "./pages/admin/promotions";
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <Router>
-            <Routes>
-              {/* Public Routes with Main Layout */}
-              <Route path="/" element={<LandingPage />} />
-              <Route
-                path="/login"
-                element={
-                  <Layout>
-                    <LoginPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/register"
-                element={
-                  <Layout>
-                    <RegisterPage />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/forgot-password"
-                element={
-                  <Layout>
-                    <ForgotPasswordPage />
-                  </Layout>
-                }
-              />
+    <HelmetProvider>
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <Router>
+              <Routes>
+                {/* Public Routes with Main Layout */}
+                <Route path="/" element={<LandingPage />} />
+                <Route
+                  path="/login"
+                  element={
+                    <Layout>
+                      <LoginPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/register"
+                  element={
+                    <Layout>
+                      <RegisterPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/forgot-password"
+                  element={
+                    <Layout>
+                      <ForgotPasswordPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/cart"
+                  element={
+                    <Layout>
+                      <CartPage />
+                    </Layout>
+                  }
+                />
 
-              {/* Admin Routes with Admin Layout */}
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="products" element={<ProductManagement />} />
-                <Route path="users" element={<UserManagement />} />
-                <Route path="orders" element={<OrderManagement />} />
-                <Route path="analytics" element={<AnalyticsDashboard />} />
-                <Route path="inventory" element={<InventoryManager />} />
-                <Route path="promotions" element={<PromotionsManager />} />
-              </Route>
-            </Routes>
-          </Router>
-        </WishlistProvider>
-      </CartProvider>
-    </AuthProvider>
+                {/* Admin Routes with Admin Layout */}
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="products" element={<ProductManagement />} />
+                  <Route path="users" element={<UserManagement />} />
+                  <Route path="orders" element={<OrderManagement />} />
+                  <Route path="analytics" element={<AnalyticsDashboard />} />
+                  <Route path="inventory" element={<InventoryManager />} />
+                  <Route path="promotions" element={<PromotionsManager />} />
+                </Route>
+              </Routes>
+            </Router>
+          </WishlistProvider>
+        </CartProvider>
+      </AuthProvider>
+    </HelmetProvider>
   );
 }
 
