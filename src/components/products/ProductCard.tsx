@@ -1,71 +1,79 @@
 // src/components/products/ProductCard.tsx
-import { Link } from "react-router-dom";
-import { Heart } from "lucide-react";
-import { Product } from "../../types/Product";
+import React from "react";
 import { useCart } from "../../hooks/useCart";
-import { useWishlist } from "../../hooks/useWishlist";
+import { CartItem } from "../../types/Cart";
+import { Product } from "../../types/Product";
 
 interface ProductCardProps {
   product: Product;
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
-  const { addToCart } = useCart();
-  const { addToWishlist, isInWishlist } = useWishlist();
+export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const { addItem } = useCart();
+
+  const handleAddToCart = () => {
+    const cartItem: CartItem = {
+      id: `cart-${product.id}`,
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.image,
+      stockQuantity: product.stock, // Using stock instead of stockQuantity
+      attributes: {
+        category: product.category,
+      },
+    };
+
+    addItem(cartItem);
+  };
 
   return (
-    <div className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-      {/* Product Image */}
-      <Link
-        to={`/products/${product.id}`}
-        className="block relative aspect-square"
-      >
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover object-center group-hover:opacity-75 transition-opacity"
-        />
-      </Link>
-
-      {/* Wishlist Button */}
-      <button
-        onClick={() => addToWishlist(product)}
-        className="absolute top-4 right-4 p-2 rounded-full bg-white dark:bg-gray-700 shadow-md hover:bg-gray-100 dark:hover:bg-gray-600"
-      >
-        <Heart
-          className={`h-5 w-5 ${
-            isInWishlist(product.id)
-              ? "fill-red-500 text-red-500"
-              : "text-gray-400"
-          }`}
-        />
-      </button>
-
-      {/* Product Info */}
-      <div className="p-4">
-        <Link to={`/products/${product.id}`} className="block">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            {product.name}
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
-            {product.description}
-          </p>
-        </Link>
-
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-gray-900 dark:text-white">
-            ${product.price.toFixed(2)}
+    <div className="bg-white rounded-lg shadow-md p-4">
+      <img
+        src={product.image}
+        alt={product.name}
+        className="w-full h-48 object-cover rounded-md"
+      />
+      <div className="mt-4">
+        <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
+        <div className="flex items-center mt-1">
+          <div className="flex items-center">
+            {[...Array(5)].map((_, index) => (
+              <svg
+                key={index}
+                className={`w-4 h-4 ${
+                  index < Math.floor(product.rating)
+                    ? "text-yellow-400"
+                    : "text-gray-300"
+                }`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            ))}
+          </div>
+          <span className="text-sm text-gray-500 ml-2">
+            ({product.reviews})
           </span>
-          <button
-            onClick={() => addToCart(product)}
-            className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700"
-          >
-            Add to Cart
-          </button>
         </div>
+        <p className="mt-2 text-gray-600">${product.price.toFixed(2)}</p>
+        <p className="mt-1 text-sm text-gray-500">
+          {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
+        </p>
       </div>
+      <button
+        onClick={handleAddToCart}
+        disabled={product.stock === 0}
+        className={`mt-4 w-full py-2 px-4 rounded-md transition-colors ${
+          product.stock > 0
+            ? "bg-indigo-600 text-white hover:bg-indigo-700"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+        }`}
+      >
+        {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+      </button>
     </div>
   );
 };
-
-export default ProductCard;
