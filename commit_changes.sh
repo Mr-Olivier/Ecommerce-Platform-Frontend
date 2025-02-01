@@ -147,53 +147,49 @@ generate_commit_message() {
 
     # Determine commit type based on file path
     case "$file" in
+        *LoadingSpinner.css|*LoadingSpinner.tsx)
+            type="feat(ui)"
+            message="add loading spinner component"
+            ;;
+        *checkout/confirmation.tsx|*checkout/index.tsx)
+            type="feat(checkout)"
+            message="implement ${file##*/(.tsx)} page"
+            ;;
+        *products/[id].tsx)
+            type="feat(products)"
+            message="add product details page"
+            ;;
+        *ProductCard.tsx|*ProductDetails.tsx|*ProductGallery.tsx|*ProductList.tsx)
+            type="feat(products)"
+            message="add product component - ${file##*/}"
+            ;;
+        *Filters.tsx)
+            type="feat(products)"
+            message="add product filters component"
+            ;;
+        *RelatedProducts.tsx)
+            type="feat(products)"
+            message="add related products component"
+            ;;
+        *useProduct.ts)
+            type="feat(hooks)"
+            message="update product hook functionality"
+            ;;
+        *useAuth.ts)
+            type="feat(hooks)"
+            message="implement authentication hook"
+            ;;
         *App.tsx)
-            type="fix(routing)"
-            message="update application routing configuration"
+            type="feat(routing)"
+            message="update routing with product and checkout pages"
             ;;
-        *RegisterForm.tsx)
-            type="feat(auth)"
-            message="enhance user registration form"
-            ;;
-        *pages/admin/products.tsx)
-            type="feat(admin)"
-            message="update product management page"
-            ;;
-        *pages/admin/users.tsx)
-            type="feat(admin)"
-            message="update user management page"
-            ;;
-        *commit_changes.sh)
-            type="chore(ci)"
-            message="update git commit and push automation script"
-            ;;
-        *package.json)
+        *package.json|*package-lock.json)
             type="chore(deps)"
             message="update project dependencies"
             ;;
-        *package-lock.json)
-            type="chore(deps)"
-            message="update package lock file"
-            ;;
-        *pages/admin/analytics.tsx)
-            type="feat(admin)"
-            message="add analytics page to admin dashboard"
-            ;;
-        *pages/admin/inventory.tsx)
-            type="feat(admin)"
-            message="add inventory management page"
-            ;;
-        *pages/admin/orders.tsx)
-            type="feat(admin)"
-            message="add orders management page"
-            ;;
-        *pages/admin/promotions.tsx)
-            type="feat(admin)"
-            message="add promotions management page"
-            ;;
         *)
-            type="chore"
-            message="update ${file}"
+            type="feat"
+            message="add ${file##*/}"
             ;;
     esac
 
@@ -208,9 +204,16 @@ check_git_repo() {
     fi
 }
 
-# Function to commit and push individual files
-commit_and_push_individual_files() {
+# Function to commit and push changes
+commit_and_push_changes() {
     check_git_repo
+
+    # Already staged files
+    staged_files=(
+        "src/components/shared/LoadingSpinner.css"
+        "src/pages/checkout/confirmation.tsx"
+        "src/pages/products/[id].tsx"
+    )
 
     # Modified files
     modified_files=(
@@ -218,44 +221,62 @@ commit_and_push_individual_files() {
         "package-lock.json"
         "package.json"
         "src/App.tsx"
-        "src/components/Auth/RegisterForm.tsx"
-        "src/pages/admin/products.tsx"
-        "src/pages/admin/users.tsx"
+        "src/components/products/ProductCard.tsx"
+        "src/hooks/useProduct.ts"
     )
 
     # Untracked files
     untracked_files=(
-        "src/pages/admin/analytics.tsx"
-        "src/pages/admin/inventory.tsx"
-        "src/pages/admin/orders.tsx"
-        "src/pages/admin/promotions.tsx"
+        "src/components/checkout/"
+        "src/components/products/Filters.tsx"
+        "src/components/products/ProductDetails.tsx"
+        "src/components/products/ProductGallery.tsx"
+        "src/components/products/ProductList.tsx"
+        "src/components/products/RelatedProducts.tsx"
+        "src/components/reviews/"
+        "src/components/shared/LoadingSpinner.tsx"
+        "src/hooks/useAuth.ts"
+        "src/pages/checkout/index.tsx"
+        "src/pages/products/index.tsx"
     )
 
-    # Combine all files
-    all_files=("${modified_files[@]}" "${untracked_files[@]}")
-
-    # Process each file
-    for file in "${all_files[@]}"; do
+    # Process staged files first
+    for file in "${staged_files[@]}"; do
         if [ -f "$file" ] || [ -d "$file" ]; then
-            # Generate commit message
             commit_message=$(generate_commit_message "$file")
-            
-            # Add the file
-            git add "$file"
-            echo "Added: $file"
-            
-            # Commit the file
             git commit -m "$commit_message"
-            echo "Committed: $file with message - $commit_message"
-        else
-            echo "Warning: $file does not exist"
+            echo "Committed staged file: $file with message - $commit_message"
         fi
     done
 
-    # Push changes
+    # Process modified files
+    for file in "${modified_files[@]}"; do
+        if [ -f "$file" ] || [ -d "$file" ]; then
+            commit_message=$(generate_commit_message "$file")
+            git add "$file"
+            git commit -m "$commit_message"
+            echo "Committed modified file: $file with message - $commit_message"
+        else
+            echo "Warning: Modified file $file does not exist"
+        fi
+    done
+
+    # Process untracked files
+    for file in "${untracked_files[@]}"; do
+        if [ -f "$file" ] || [ -d "$file" ]; then
+            commit_message=$(generate_commit_message "$file")
+            git add "$file"
+            git commit -m "$commit_message"
+            echo "Committed new file: $file with message - $commit_message"
+        else
+            echo "Warning: Untracked file $file does not exist"
+        fi
+    done
+
+    # Push all changes
     git push origin main
     echo "All changes have been committed and pushed successfully!"
 }
 
 # Run the function
-commit_and_push_individual_files
+commit_and_push_changes
