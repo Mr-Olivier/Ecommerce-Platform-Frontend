@@ -1,17 +1,21 @@
-// src/types/Cart.ts
-import { Product } from "./Product";
-
+// types/Cart.ts
 export interface CartItem {
-  product: Product;
+  id: string;
+  productId: string;
+  name: string;
+  price: number;
   quantity: number;
+  image: string;
+  stockQuantity: number;
+  attributes?: {
+    [key: string]: string;
+  };
 }
 
-export interface CartContextType {
+export interface Cart {
   items: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
-  clearCart: () => void;
-  getCartTotal: () => number;
-  getItemsCount: () => number;
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  total: number;
 }
