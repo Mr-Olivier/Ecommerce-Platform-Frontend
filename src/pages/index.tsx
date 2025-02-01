@@ -1,6 +1,6 @@
 // src/pages/index.tsx
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"; // Changed from next/link
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -16,9 +16,10 @@ import {
 } from "lucide-react";
 
 import Layout from "../components/common/Layout";
-import ProductCard from "../components/products/ProductCard";
+import { ProductCard } from "../components/products/ProductCard";
 import { useProduct } from "../hooks/useProduct";
 
+// Removed NextPage type since we're not using Next.js
 const LandingPage = () => {
   const { featuredProducts } = useProduct();
   const [showAllProducts, setShowAllProducts] = useState(false);
@@ -128,14 +129,14 @@ const LandingPage = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                to="/products"
+                to="/products" // Changed from href to to
                 className="inline-flex items-center px-8 py-4 text-lg font-medium rounded-full text-primary-600 bg-white hover:bg-primary-50 transition-colors duration-200"
               >
                 Shop Now
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <Link
-                to="/categories"
+                to="/categories" // Changed from href to to
                 className="inline-flex items-center px-8 py-4 text-lg font-medium rounded-full text-white border-2 border-white hover:bg-white/10 transition-colors duration-200"
               >
                 Browse Categories
@@ -217,7 +218,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials Section */}
       <section className="py-20 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -265,37 +266,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
-      {/* Newsletter Section */}
-      {/* <section className="py-20 bg-primary-600 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-white/[0.05]" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Stay Updated
-            </h2>
-            <p className="text-primary-100 text-lg mb-8 max-w-2xl mx-auto">
-              Subscribe to our newsletter for updates, exclusive offers, and
-              early access to new products.
-            </p>
-            <form className="max-w-md mx-auto">
-              <div className="flex gap-4">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="flex-1 px-6 py-4 rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-white/50"
-                />
-                <button
-                  type="submit"
-                  className="px-8 py-4 bg-white text-primary-600 text-lg font-medium rounded-full hover:bg-primary-50 transition-colors duration-200"
-                >
-                  Subscribe
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </section> */}
 
       {/* Scroll to Top Button */}
       <AnimatePresence>
