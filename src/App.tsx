@@ -324,6 +324,7 @@ import ForgotPasswordPage from "./pages/auth/forgot-password";
 import CartPage from "./pages/cart";
 import CheckoutPage from "./pages/checkout";
 import ConfirmationPage from "./pages/checkout/confirmation";
+import ContactPage from "./pages/contact";
 
 // Product Pages
 import ProductListingPage from "./pages/products";
@@ -369,6 +370,14 @@ function App() {
                   element={
                     <Layout>
                       <ForgotPasswordPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/contact"
+                  element={
+                    <Layout>
+                      <ContactPage />
                     </Layout>
                   }
                 />
