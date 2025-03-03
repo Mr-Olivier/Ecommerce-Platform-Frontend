@@ -1,23 +1,37 @@
-// src/pages/auth/login.tsx
 import React, { useState } from "react";
-import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  FaUser,
+  FaLock,
+  FaEye,
+  FaEyeSlash,
+  FaCheckCircle,
+} from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const LoginForm: React.FC = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    rememberMe: false,
+  });
   const [errors, setErrors] = useState({ email: "", password: "" });
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [redirectDelay, setRedirectDelay] = useState(3);
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
+    setFormData({ ...formData, [name]: newValue });
+
     // Clear error when user starts typing
     if (errors[name as keyof typeof errors]) {
       setErrors({ ...errors, [name]: "" });
@@ -49,9 +63,45 @@ const LoginForm: React.FC = () => {
     if (validateForm()) {
       setLoading(true);
       try {
-        // Add your login logic here
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-        alert("Logged in successfully!");
+        // Simulating an API call
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Store user info in local storage if remember me is checked
+        if (formData.rememberMe) {
+          localStorage.setItem("auth_token", "mock-token-value");
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              name: "Demo User",
+              email: formData.email,
+            })
+          );
+        } else {
+          // Store in session storage if remember me is not checked
+          sessionStorage.setItem("auth_token", "mock-token-value");
+          sessionStorage.setItem(
+            "user",
+            JSON.stringify({
+              name: "Demo User",
+              email: formData.email,
+            })
+          );
+        }
+
+        // Show success popup
+        setShowSuccessPopup(true);
+
+        // Start the countdown timer for redirection
+        const timer = setInterval(() => {
+          setRedirectDelay((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              navigate("/customer/dashboard"); // Redirect to dashboard
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
       } catch (error) {
         console.error("Login failed:", error);
       } finally {
@@ -63,6 +113,22 @@ const LoginForm: React.FC = () => {
   const handleGoogleLogin = async () => {
     try {
       // Add your Google OAuth logic here
+      // For demo, show same success flow
+      setLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setLoading(false);
+      setShowSuccessPopup(true);
+
+      const timer = setInterval(() => {
+        setRedirectDelay((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            navigate("/customer/dashboard");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (error) {
       console.error("Google login failed:", error);
     }
@@ -70,6 +136,40 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
+      {/* Success Popup */}
+      {showSuccessPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-lg p-8 max-w-md w-full shadow-lg"
+          >
+            <div className="flex items-center mb-6">
+              <div className="bg-green-100 rounded-full p-2 mr-4">
+                <FaCheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900">
+                Login Successful!
+              </h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Welcome back! You have successfully logged into your account.
+            </p>
+            <p className="text-gray-500 mb-4">
+              Redirecting to your dashboard in {redirectDelay} seconds...
+            </p>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => navigate("/customer/dashboard")}
+                className="bg-primary-600 text-white py-2 px-4 rounded hover:bg-primary-700 transition-colors"
+              >
+                Go to Dashboard Now
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -86,10 +186,11 @@ const LoginForm: React.FC = () => {
         {/* Google OAuth Button */}
         <button
           onClick={handleGoogleLogin}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <FcGoogle className="h-5 w-5" />
-          <span>Continue with Google</span>
+          <span>{loading ? "Signing in..." : "Continue with Google"}</span>
         </button>
 
         {/* Divider */}
@@ -185,13 +286,15 @@ const LoginForm: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
-                id="remember-me"
-                name="remember-me"
+                id="rememberMe"
+                name="rememberMe"
                 type="checkbox"
+                checked={formData.rememberMe}
+                onChange={handleChange}
                 className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
               <label
-                htmlFor="remember-me"
+                htmlFor="rememberMe"
                 className="ml-2 block text-sm text-gray-700"
               >
                 Remember me
@@ -212,7 +315,32 @@ const LoginForm: React.FC = () => {
             disabled={loading}
             className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? (
+              <span className="flex items-center">
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              "Sign in"
+            )}
           </button>
         </form>
 
