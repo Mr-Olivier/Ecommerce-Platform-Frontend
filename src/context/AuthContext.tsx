@@ -16,11 +16,17 @@ interface AuthContextType {
     email: string,
     password: string,
     firstName: string,
-    lastName: string
+    lastName: string,
+    username: string,
+    phoneNumber: string,
+    company: string,
+    country: string,
+    resend?: boolean
   ) => Promise<void>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
+  verifyOtp: (email: string, otp: string) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -65,7 +71,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     email: string,
     password: string,
     firstName: string,
-    lastName: string
+    lastName: string,
+    username: string,
+    phoneNumber: string,
+    company: string,
+    country: string,
+    resend?: boolean
   ) => {
     try {
       setLoading(true);
@@ -75,16 +86,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
         firstName,
         lastName,
+        username,
+        phoneNumber,
+        company,
+        country,
+        resend,
       });
-      setUser(response.data.user);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      localStorage.setItem("token", response.data.token);
+
+      // For registration, don't set user yet until OTP verification is complete
+      if (!resend) {
+        // Store registration data temporarily if needed
+        localStorage.setItem("registrationEmail", email);
+      }
+
+      return response.data;
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
           : "An error occurred during registration"
       );
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOtp = async (email: string, otp: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.post<AuthResponse>("/auth/verify-otp", {
+        email,
+        otp,
+      });
+
+      // After successful OTP verification, set the user
+      setUser(response.data.user);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", response.data.token);
+
+      // Clean up temporary storage
+      localStorage.removeItem("registrationEmail");
+
+      return response.data;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "OTP verification failed");
       throw err;
     } finally {
       setLoading(false);
@@ -130,6 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
     forgotPassword,
     resetPassword,
+    verifyOtp,
     loading,
     error,
   };
