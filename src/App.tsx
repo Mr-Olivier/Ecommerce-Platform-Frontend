@@ -307,7 +307,7 @@
 
 // export default App;
 
-// App.tsx
+// App.tsx - Modified version with customer dashboard routes
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { CartProvider } from "./context/CartContext";
@@ -338,6 +338,15 @@ import OrderManagement from "./pages/admin/orders";
 import AnalyticsDashboard from "./pages/admin/analytics";
 import InventoryManager from "./pages/admin/inventory";
 import PromotionsManager from "./pages/admin/promotions";
+
+// Customer Dashboard Pages - ADD THESE IMPORTS
+import CustomerDashboard from "./pages/customer/dashboard";
+import CustomerOrders from "./pages/customer/orders";
+import CustomerAccount from "./pages/customer/account";
+import CustomerAddresses from "./pages/customer/addresses";
+import CustomerPaymentMethods from "./pages/customer/payment-methods";
+import CustomerReviews from "./pages/customer/reviews";
+import CustomerWishlist from "./pages/customer/wishlist";
 
 function App() {
   return (
@@ -436,6 +445,27 @@ function App() {
                   <Route path="inventory" element={<InventoryManager />} />
                   <Route path="promotions" element={<PromotionsManager />} />
                 </Route>
+
+                {/* CUSTOMER DASHBOARD ROUTES - ADD THESE ROUTES */}
+                <Route
+                  path="/customer/dashboard"
+                  element={<CustomerDashboard />}
+                />
+                <Route path="/customer/orders" element={<CustomerOrders />} />
+                <Route path="/customer/account" element={<CustomerAccount />} />
+                <Route
+                  path="/customer/addresses"
+                  element={<CustomerAddresses />}
+                />
+                <Route
+                  path="/customer/payment-methods"
+                  element={<CustomerPaymentMethods />}
+                />
+                <Route path="/customer/reviews" element={<CustomerReviews />} />
+                <Route
+                  path="/customer/wishlist"
+                  element={<CustomerWishlist />}
+                />
               </Routes>
             </Router>
           </WishlistProvider>
