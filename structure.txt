@@ -304,3 +304,25 @@ src/
 
 
 
+├── components/
+│   └── customer-dashboard/
+│       ├── DashboardLayout.tsx
+│       ├── OrderHistory.tsx
+│       ├── AccountSettings.tsx
+│       ├── AddressBook.tsx
+│       ├── PaymentMethods.tsx
+│       ├── WishlistSummary.tsx
+│       └── ReviewsHistory.tsx
+├── pages/
+│   └── customer/
+│       ├── dashboard.tsx
+│       ├── orders.tsx
+│       ├── account.tsx
+│       ├── addresses.tsx
+│       ├── payment-methods.tsx
+│       ├── reviews.tsx
+│       └── wishlist.tsx
+
+
+
+
