@@ -1,4 +1,3 @@
-// src/components/dashboard/AdminLayout.tsx
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import {
@@ -15,10 +14,14 @@ import {
   Bell,
   X,
   ChevronDown,
+  ChevronRight,
+  Search,
+  ArrowLeftFromLine,
 } from "lucide-react";
 
 const AdminLayout = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const location = useLocation();
   const profileRef = useRef<HTMLDivElement>(null);
@@ -38,6 +41,11 @@ const AdminLayout = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [location.pathname]);
+
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Products", href: "/admin/products", icon: Package },
@@ -49,47 +57,166 @@ const AdminLayout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-sm fixed w-full top-0 z-50">
-        <div className="max-w-[2000px] mx-auto">
-          <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-            {/* Logo */}
-            <Link to="/admin" className="flex-shrink-0 flex items-center">
-              <span className="text-xl lg:text-2xl font-bold text-primary-600">
+    <div className="flex h-screen bg-gray-100">
+      {/* Mobile sidebar backdrop */}
+      {isMobileSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        ></div>
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-50 bg-white transition-all duration-300 transform border-r border-gray-200
+          ${isSidebarCollapsed ? "w-20" : "w-64"} 
+          ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"} 
+          lg:translate-x-0
+        `}
+      >
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+          <Link to="/admin" className="flex items-center flex-shrink-0">
+            {!isSidebarCollapsed ? (
+              <span className="text-xl font-bold text-primary-600">
                 EStore Admin
               </span>
+            ) : (
+              <div className="w-8 h-8 rounded-md bg-primary-600 flex items-center justify-center text-white font-bold">
+                E
+              </div>
+            )}
+          </Link>
+          <button
+            onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
+            className="hidden lg:block p-2 rounded-md text-gray-500 hover:bg-gray-100"
+          >
+            {isSidebarCollapsed ? (
+              <ChevronRight className="h-5 w-5" />
+            ) : (
+              <ChevronLeft className="h-5 w-5" />
+            )}
+          </button>
+          <button
+            onClick={() => setMobileSidebarOpen(false)}
+            className="lg:hidden p-2 rounded-md text-gray-500 hover:bg-gray-100"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Sidebar Navigation */}
+        <div className="flex flex-col h-full overflow-y-auto py-4">
+          <nav className="flex-1 px-2 space-y-1">
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`
+                    flex items-center px-3 py-3 rounded-lg transition-colors font-medium
+                    ${
+                      isActive
+                        ? "bg-primary-50 text-primary-600"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+                    }
+                  `}
+                >
+                  <item.icon
+                    className={`
+                    h-5 w-5 flex-shrink-0 
+                    ${isActive ? "text-primary-600" : "text-gray-400"}
+                  `}
+                  />
+                  {!isSidebarCollapsed && (
+                    <span className="ml-3 text-sm">{item.name}</span>
+                  )}
+                  {isSidebarCollapsed && isActive && (
+                    <span className="absolute left-0 h-8 w-1 bg-primary-600 rounded-r-md"></span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Bottom Section */}
+          <div className="px-2 mt-4 border-t border-gray-200 pt-4">
+            <Link
+              to="/admin/settings"
+              className="flex items-center px-3 py-3 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+            >
+              <Settings className="h-5 w-5 text-gray-400" />
+              {!isSidebarCollapsed && (
+                <span className="ml-3 text-sm font-medium">Settings</span>
+              )}
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex flex-1 justify-center items-center space-x-4 xl:space-x-6 px-4">
-              {navigation.map((item) => {
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
-                      isActive
-                        ? "text-primary-600 bg-primary-50"
-                        : "text-gray-600 hover:text-primary-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    <item.icon
-                      className={`h-5 w-5 mr-2 ${
-                        isActive ? "text-primary-600" : "text-gray-400"
-                      }`}
-                    />
-                    <span className="text-sm">{item.name}</span>
-                  </Link>
-                );
-              })}
+            {/* Add LeftDash link here */}
+            <Link
+              to="/"
+              className="flex items-center px-3 py-3 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+            >
+              <ArrowLeftFromLine className="h-5 w-5 text-gray-400" />
+              {!isSidebarCollapsed && (
+                <span className="ml-3 text-sm font-medium">LeftDash</span>
+              )}
+            </Link>
+
+            {/* Logout button - this was already in your code but I'm showing it for context */}
+            <button
+              onClick={() => {
+                /* Add logout logic */
+              }}
+              className="w-full mt-1 flex items-center px-3 py-3 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-red-600"
+            >
+              <LogOut className="h-5 w-5 text-gray-400" />
+              {!isSidebarCollapsed && (
+                <span className="ml-3 text-sm font-medium">Logout</span>
+              )}
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div
+        className={`
+        flex-1 transition-all duration-300
+        ${isSidebarCollapsed ? "lg:ml-20" : "lg:ml-64"}
+      `}
+      >
+        {/* Top Header */}
+        <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between h-16 px-4 lg:px-6">
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-md text-gray-500 hover:bg-gray-100"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+
+            {/* Search */}
+            <div className="hidden md:block flex-1 max-w-md mx-auto lg:mx-0 lg:max-w-xs xl:max-w-lg">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400" />
+                </div>
+                <input
+                  type="search"
+                  className="block w-full rounded-md border-0 py-2 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm"
+                  placeholder="Search..."
+                />
+              </div>
             </div>
 
-            {/* Right Section */}
-            <div className="flex items-center space-x-4">
+            {/* Right Actions */}
+            <div className="flex items-center space-x-3">
               {/* Notifications */}
-              <button className="relative p-2 rounded-full hover:bg-gray-100">
-                <Bell className="h-5 w-5 text-gray-600" />
+              <button className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100">
+                <Bell className="h-5 w-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
 
@@ -97,24 +224,26 @@ const AdminLayout = () => {
               <div className="relative" ref={profileRef}>
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100"
+                  className="flex items-center space-x-2 p-1 rounded-lg hover:bg-gray-100"
                 >
                   <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                     <Users className="h-5 w-5 text-gray-600" />
                   </div>
-                  <span className="hidden lg:block text-sm font-medium text-gray-700">
-                    Admin
-                  </span>
-                  <ChevronDown
-                    className={`hidden lg:block h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                      isProfileOpen ? "rotate-180" : ""
-                    }`}
-                  />
+                  <div className="hidden md:flex items-center">
+                    <span className="text-sm font-medium text-gray-700">
+                      Admin User
+                    </span>
+                    <ChevronDown
+                      className={`ml-1 h-4 w-4 text-gray-500 transition-transform duration-200 ${
+                        isProfileOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
                 </button>
 
                 {/* Profile Dropdown Menu */}
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 border border-gray-200">
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 border border-gray-200 z-10">
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">
                         Admin User
@@ -150,61 +279,33 @@ const AdminLayout = () => {
                   </div>
                 )}
               </div>
-
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 rounded-md hover:bg-gray-100"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="h-6 w-6 text-gray-600" />
-                ) : (
-                  <Menu className="h-6 w-6 text-gray-600" />
-                )}
-              </button>
             </div>
           </div>
+        </header>
 
-          {/* Mobile Navigation */}
-          {isMobileMenuOpen && (
-            <div className="lg:hidden bg-white border-t border-gray-200">
-              <div className="px-2 pt-2 pb-3 space-y-1">
-                {navigation.map((item) => {
-                  const isActive = location.pathname === item.href;
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
-                        isActive
-                          ? "text-primary-600 bg-primary-50"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-primary-600"
-                      }`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <item.icon
-                        className={`h-5 w-5 mr-2 ${
-                          isActive ? "text-primary-600" : "text-gray-400"
-                        }`}
-                      />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="pt-16">
-        <main className="container mx-auto px-4 py-6">
+        {/* Main Content Area */}
+        <main className="p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>
     </div>
   );
 };
+
+// Add this import
+const ChevronLeft = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+);
 
 export default AdminLayout;
