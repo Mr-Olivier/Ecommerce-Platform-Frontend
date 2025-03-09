@@ -118,6 +118,6 @@ export const useWishlist = () => {
     error,
     fetchWishlist,
     moveToCart,
-    wishlist: context.wishlist, // Ensure wishlist is available from context
+    wishlist: mockWishlistItems, // Use mock data instead of non-existent context property
   };
 };
