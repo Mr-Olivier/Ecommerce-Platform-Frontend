@@ -22,11 +22,11 @@ interface AuthContextType {
     company: string,
     country: string,
     resend?: boolean
-  ) => Promise<void>;
+  ) => Promise<AuthResponse>; // Changed to match implementation
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
-  verifyOtp: (email: string, otp: string) => Promise<void>;
+  verifyOtp: (email: string, otp: string) => Promise<AuthResponse>; // Changed to match implementation
   loading: boolean;
   error: string | null;
 }
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     company: string,
     country: string,
     resend?: boolean
-  ) => {
+  ): Promise<AuthResponse> => {
     try {
       setLoading(true);
       setError(null);
@@ -112,7 +112,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const verifyOtp = async (email: string, otp: string) => {
+  const verifyOtp = async (
+    email: string,
+    otp: string
+  ): Promise<AuthResponse> => {
     try {
       setLoading(true);
       setError(null);
