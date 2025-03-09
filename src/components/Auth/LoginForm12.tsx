@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import axios from "axios";
 import {
   FaUser,
   FaLock,
   FaEye,
   FaEyeSlash,
   FaCheckCircle,
+  FaExclamationCircle,
 } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
@@ -17,11 +19,20 @@ const LoginForm: React.FC = () => {
     password: "",
     rememberMe: false,
   });
-  const [errors, setErrors] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({ email: "", password: "", server: "" });
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [redirectDelay, setRedirectDelay] = useState(3);
+  const [userRole, setUserRole] = useState(""); // To store user role for redirection
+
+  // Create axios instance with base URL
+  const api = axios.create({
+    baseURL: "http://localhost:4000/api",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -36,10 +47,15 @@ const LoginForm: React.FC = () => {
     if (errors[name as keyof typeof errors]) {
       setErrors({ ...errors, [name]: "" });
     }
+
+    // Clear server error when any field is changed
+    if (errors.server) {
+      setErrors({ ...errors, server: "" });
+    }
   };
 
   const validateForm = () => {
-    const newErrors = { email: "", password: "" };
+    const newErrors = { email: "", password: "", server: "" };
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
@@ -63,47 +79,137 @@ const LoginForm: React.FC = () => {
     if (validateForm()) {
       setLoading(true);
       try {
-        // Simulating an API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // API integration with the login endpoint using axios
+        const response = await api.post("/auth/login", {
+          email: formData.email,
+          password: formData.password,
+        });
 
-        // Store user info in local storage if remember me is checked
-        if (formData.rememberMe) {
-          localStorage.setItem("auth_token", "mock-token-value");
-          localStorage.setItem(
-            "user",
-            JSON.stringify({
-              name: "Demo User",
-              email: formData.email,
-            })
-          );
-        } else {
-          // Store in session storage if remember me is not checked
-          sessionStorage.setItem("auth_token", "mock-token-value");
-          sessionStorage.setItem(
-            "user",
-            JSON.stringify({
-              name: "Demo User",
-              email: formData.email,
-            })
-          );
+        console.log(
+          "LOGIN API RESPONSE - USER ROLE:",
+          response.data.data.user.role
+        );
+
+        // Get data from response - matching actual API response structure
+        const responseData = response.data;
+
+        if (responseData.status !== "success") {
+          throw new Error(responseData.message || "Login failed");
         }
+
+        // Extract the data from response
+        const data = responseData.data;
+
+        // Store authentication data based on rememberMe preference
+        const storageMethod = formData.rememberMe
+          ? localStorage
+          : sessionStorage;
+
+        // Store auth token
+        storageMethod.setItem("auth_token", data.token);
+
+        // Store user info - preserve original case for role
+        const userData = {
+          id: data.user.id,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          email: data.user.email,
+          role: data.user.role, // Keep original case from API
+        };
+
+        console.log("USER DATA BEFORE STORAGE - ROLE:", userData.role);
+
+        storageMethod.setItem("user", JSON.stringify(userData));
+
+        console.log(
+          "VERIFICATION - STORED USER ROLE:",
+          JSON.parse(storageMethod.getItem("user") || "{}").role
+        );
+
+        // Log what's being stored for debugging
+        console.log("Auth data stored:", {
+          token: data.token,
+          user: userData,
+        });
+
+        // Save the user role for redirection (keep original case)
+        const role = data.user.role; // Don't convert to lowercase
+        setUserRole(role);
+
+        // Determine redirect URL with proper case comparison
+        const redirectUrl =
+          data.redirectUrl ||
+          (role === "ADMIN"
+            ? "/admin"
+            : role === "CUSTOMER"
+            ? "/customer/dashboard"
+            : "/");
+
+        console.log("Will redirect to:", redirectUrl);
 
         // Show success popup
         setShowSuccessPopup(true);
 
-        // Start the countdown timer for redirection
+        // Start the countdown timer for UI feedback
         const timer = setInterval(() => {
           setRedirectDelay((prev) => {
             if (prev <= 1) {
               clearInterval(timer);
-              navigate("/customer/dashboard"); // Redirect to dashboard
               return 0;
             }
             return prev - 1;
           });
         }, 1000);
+
+        // Use setTimeout for actual navigation to ensure auth context updates
+        setTimeout(() => {
+          navigate(redirectUrl);
+        }, redirectDelay * 1000); // Navigate after countdown completes
       } catch (error) {
         console.error("Login failed:", error);
+
+        // Handle axios error response
+        if (axios.isAxiosError(error)) {
+          console.log("Full error details:", error.response);
+
+          if (error.response) {
+            // Handle different status codes
+            const statusCode = error.response.status;
+
+            if (statusCode === 401) {
+              setErrors({
+                ...errors,
+                server: "Invalid email or password. Please try again.",
+              });
+            } else if (error.response.data && error.response.data.message) {
+              setErrors({ ...errors, server: error.response.data.message });
+            } else {
+              setErrors({
+                ...errors,
+                server: `Server error (${statusCode}). Please try again.`,
+              });
+            }
+          } else if (error.request) {
+            // The request was made but no response was received
+            setErrors({
+              ...errors,
+              server: "No response from server. Please check your connection.",
+            });
+          } else {
+            // Something happened in setting up the request
+            setErrors({
+              ...errors,
+              server: "Request configuration error: " + error.message,
+            });
+          }
+        } else if (error instanceof Error) {
+          setErrors({ ...errors, server: error.message });
+        } else {
+          setErrors({
+            ...errors,
+            server: "An unexpected error occurred. Please try again later.",
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -112,25 +218,20 @@ const LoginForm: React.FC = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      // Add your Google OAuth logic here
-      // For demo, show same success flow
-      setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setLoading(false);
-      setShowSuccessPopup(true);
-
-      const timer = setInterval(() => {
-        setRedirectDelay((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            navigate("/customer/dashboard");
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+      // This would typically redirect to Google OAuth
+      // For now, show a temporary error since we're using a custom API
+      setErrors({
+        ...errors,
+        server:
+          "Google login is not configured with the current API. Please use email/password login.",
+      });
     } catch (error) {
       console.error("Google login failed:", error);
+      setErrors({
+        ...errors,
+        server:
+          "Google authentication failed. Please try again or use email/password login.",
+      });
     }
   };
 
@@ -153,17 +254,24 @@ const LoginForm: React.FC = () => {
               </h3>
             </div>
             <p className="text-gray-600 mb-6">
-              Welcome back! You have successfully logged into your account.
+              Welcome back, {formData.email}! You have successfully logged into
+              your account.
             </p>
             <p className="text-gray-500 mb-4">
-              Redirecting to your dashboard in {redirectDelay} seconds...
+              Redirecting to your{" "}
+              {userRole === "ADMIN" ? "admin panel" : "dashboard"} in{" "}
+              {redirectDelay} seconds...
             </p>
             <div className="mt-4 flex justify-end">
               <button
-                onClick={() => navigate("/customer/dashboard")}
+                onClick={() =>
+                  navigate(
+                    userRole === "ADMIN" ? "/admin" : "/customer/dashboard"
+                  )
+                }
                 className="bg-primary-600 text-white py-2 px-4 rounded hover:bg-primary-700 transition-colors"
               >
-                Go to Dashboard Now
+                Go to {userRole === "ADMIN" ? "Admin Panel" : "Dashboard"} Now
               </button>
             </div>
           </motion.div>
@@ -182,6 +290,16 @@ const LoginForm: React.FC = () => {
             Log in to your account to continue shopping
           </p>
         </div>
+
+        {/* Server Error Message */}
+        {errors.server && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md">
+            <div className="flex items-center">
+              <FaExclamationCircle className="h-5 w-5 text-red-500 mr-2" />
+              <span className="text-red-700">{errors.server}</span>
+            </div>
+          </div>
+        )}
 
         {/* Google OAuth Button */}
         <button
