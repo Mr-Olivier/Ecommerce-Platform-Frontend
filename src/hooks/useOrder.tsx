@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Order } from "../components/customer-dashboard/OrderHistory";
-import { api } from "../utils/api";
+// import { api } from "../utils/api";
 
 // Example mock data for development purposes
 const mockOrders: Order[] = [
@@ -378,15 +378,29 @@ export function useOrder() {
         // Simulating an API call and updating local state
         await new Promise((resolve) => setTimeout(resolve, 900));
 
+        // Find the order
+        const order = mockOrders.find((order) => order.id === orderId);
+        if (!order) {
+          throw new Error("Order not found");
+        }
+
+        // Find the items being returned from the order
+        const returnItems = order.items
+          .filter((item) => itemIds.includes(item.id))
+          .map((item) => ({ id: item.id, name: item.name }));
+
         // In a real application, you would update the order data with return information
-        // For this mock, we'll just create a return reference number
+        // For this mock, we'll create a return reference number and include the reason and items
 
         return {
           success: true,
           returnReferenceNumber: `RET-${Math.floor(
             100000 + Math.random() * 900000
           )}`,
-          message: "Return request submitted successfully",
+          message: `Return request submitted successfully. Reason: ${reason}`,
+          returnReason: reason,
+          items: returnItems,
+          itemCount: itemIds.length,
         };
       } catch (err) {
         console.error(`Error returning items for order ${orderId}:`, err);
@@ -395,6 +409,9 @@ export function useOrder() {
           success: false,
           returnReferenceNumber: null,
           message: "Failed to submit return request",
+          returnReason: reason,
+          items: [],
+          itemCount: itemIds.length,
         };
       } finally {
         setLoading(false);
