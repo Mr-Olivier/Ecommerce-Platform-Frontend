@@ -53,7 +53,7 @@ const Dashboard: React.FC = () => {
   }, [orders, wishlist]);
 
   // Get last order
-  const lastOrder = orders && orders.length > 0 ? orders[0] : null;
+  // const lastOrder = orders && orders.length > 0 ? orders[0] : null;
 
   return (
     <DashboardLayout title="My Dashboard">
