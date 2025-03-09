@@ -177,16 +177,16 @@ const AddressBook: React.FC<AddressBookProps> = ({
   };
 
   // Format full address as a string
-  const formatAddress = (address: Address): string => {
-    const parts = [
-      address.address1,
-      address.address2,
-      `${address.city}, ${address.state} ${address.postalCode}`,
-      address.country,
-    ].filter(Boolean);
+  // const formatAddress = (address: Address): string => {
+  //   const parts = [
+  //     address.address1,
+  //     address.address2,
+  //     `${address.city}, ${address.state} ${address.postalCode}`,
+  //     address.country,
+  //   ].filter(Boolean);
 
-    return parts.join(", ");
-  };
+  //   return parts.join(", ");
+  // };
 
   return (
     <div>
