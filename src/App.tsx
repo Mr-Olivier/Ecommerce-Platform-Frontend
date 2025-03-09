@@ -330,9 +330,13 @@ import ContactPage from "./pages/contact";
 import ProductListingPage from "./pages/products";
 import ProductDetailPage from "./pages/products/[id]";
 
+import CategoriesPage from "./pages/categories";
+import CategoryPage from "./pages/products/category/[slug]";
+
 // Admin Pages
 import AdminDashboard from "./pages/admin";
-import ProductManagement from "./pages/admin/products";
+// import ProductManagement from "./pages/admin/products";
+import AdminProductManagement from "./pages/admin/AdminProductManagement";
 import UserManagement from "./pages/admin/users";
 import OrderManagement from "./pages/admin/orders";
 import AnalyticsDashboard from "./pages/admin/analytics";
@@ -398,7 +402,6 @@ function App() {
                     </Layout>
                   }
                 />
-
                 {/* Product Routes */}
                 <Route
                   path="/products"
@@ -416,7 +419,23 @@ function App() {
                     </Layout>
                   }
                 />
-
+                {/* Category Routes - ADD THESE */}
+                <Route
+                  path="/categories"
+                  element={
+                    <Layout>
+                      <CategoriesPage />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/products/category/:slug"
+                  element={
+                    <Layout>
+                      <CategoryPage />
+                    </Layout>
+                  }
+                />
                 {/* Checkout Routes */}
                 <Route
                   path="/checkout"
@@ -434,18 +453,21 @@ function App() {
                     </Layout>
                   }
                 />
-
                 {/* Admin Routes with Admin Layout */}
+                // In your App.tsx file, update the route for admin products:
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<AdminDashboard />} />
-                  <Route path="products" element={<ProductManagement />} />
+                  <Route
+                    path="products"
+                    element={<AdminProductManagement />}
+                  />{" "}
+                  {/* Use the new component */}
                   <Route path="users" element={<UserManagement />} />
                   <Route path="orders" element={<OrderManagement />} />
                   <Route path="analytics" element={<AnalyticsDashboard />} />
                   <Route path="inventory" element={<InventoryManager />} />
                   <Route path="promotions" element={<PromotionsManager />} />
                 </Route>
-
                 {/* CUSTOMER DASHBOARD ROUTES - ADD THESE ROUTES */}
                 <Route
                   path="/customer/dashboard"
@@ -476,3 +498,379 @@ function App() {
 }
 
 export default App;
+
+// // App.tsx - With protected routes for admin and customer dashboard
+// import {
+//   BrowserRouter as Router,
+//   Routes,
+//   Route,
+//   Navigate,
+//   Outlet,
+// } from "react-router-dom";
+// import { HelmetProvider } from "react-helmet-async";
+// import { CartProvider } from "./context/CartContext";
+// import { WishlistProvider } from "./context/WishlistContext";
+// import { AuthProvider } from "./context/AuthContext";
+// import { useAuth } from "./hooks/useAuth";
+// import Layout from "./components/common/Layout";
+// import AdminLayout from "./components/dashboards/AdminLayout";
+
+// // Pages
+// import LandingPage from "./pages";
+// import LoginPage from "./pages/auth/Login";
+// import RegisterPage from "./pages/auth/register";
+// import ForgotPasswordPage from "./pages/auth/forgot-password";
+// import CartPage from "./pages/cart";
+// import CheckoutPage from "./pages/checkout";
+// import ConfirmationPage from "./pages/checkout/confirmation";
+// import ContactPage from "./pages/contact";
+
+// // Product Pages
+// import ProductListingPage from "./pages/products";
+// import ProductDetailPage from "./pages/products/[id]";
+
+// import CategoriesPage from "./pages/categories";
+// import CategoryPage from "./pages/products/category/[slug]";
+
+// // Admin Pages
+// import AdminDashboard from "./pages/admin";
+// import AdminProductManagement from "./pages/admin/AdminProductManagement";
+// import UserManagement from "./pages/admin/users";
+// import OrderManagement from "./pages/admin/orders";
+// import AnalyticsDashboard from "./pages/admin/analytics";
+// import InventoryManager from "./pages/admin/inventory";
+// import PromotionsManager from "./pages/admin/promotions";
+
+// // Customer Dashboard Pages
+// import CustomerDashboard from "./pages/customer/dashboard";
+// import CustomerOrders from "./pages/customer/orders";
+// import CustomerAccount from "./pages/customer/account";
+// import CustomerAddresses from "./pages/customer/addresses";
+// import CustomerPaymentMethods from "./pages/customer/payment-methods";
+// import CustomerReviews from "./pages/customer/reviews";
+// import CustomerWishlist from "./pages/customer/wishlist";
+
+// // Protected route components
+// const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+//   const { isAuthenticated, loading } = useAuth();
+
+//   console.log("ProtectedRoute check:", { isAuthenticated, loading });
+
+//   if (loading) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center">
+//         Loading...
+//       </div>
+//     );
+//   }
+
+//   if (!isAuthenticated) {
+//     return <Navigate to="/login" replace />;
+//   }
+
+//   return children;
+// };
+
+// const AdminRoute = ({ children }: { children: JSX.Element }) => {
+//   const { isAuthenticated, user, loading } = useAuth();
+
+//   console.log("AdminRoute check:", { isAuthenticated, user, loading });
+
+//   if (loading) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center">
+//         Loading...
+//       </div>
+//     );
+//   }
+
+//   if (!isAuthenticated) {
+//     return <Navigate to="/login" replace />;
+//   }
+
+//   // Check exact case - API returns "ADMIN" (uppercase)
+//   if (user?.role !== "ADMIN") {
+//     console.log("User is not admin:", user?.role);
+//     return <Navigate to="/" replace />;
+//   }
+
+//   return children;
+// };
+
+// const CustomerRoute = ({ children }: { children: JSX.Element }) => {
+//   const { isAuthenticated, user, loading } = useAuth();
+
+//   console.log("CustomerRoute check:", { isAuthenticated, user, loading });
+
+//   if (loading) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center">
+//         Loading...
+//       </div>
+//     );
+//   }
+
+//   if (!isAuthenticated) {
+//     return <Navigate to="/login" replace />;
+//   }
+
+//   // Check exact case - API returns "CUSTOMER" (uppercase)
+//   if (user?.role !== "CUSTOMER") {
+//     console.log("User is not customer:", user?.role);
+//     return <Navigate to="/" replace />;
+//   }
+
+//   return children;
+// };
+
+// // Wrapper component for customer dashboard layout
+// const CustomerDashboardLayout = ({
+//   children,
+// }: {
+//   children: React.ReactNode;
+// }) => {
+//   return (
+//     <div className="customer-dashboard-layout">
+//       {/* Add your customer dashboard layout here if needed */}
+//       {children}
+//     </div>
+//   );
+// };
+
+// function AppRoutes() {
+//   return (
+//     <Routes>
+//       {/* Public Routes with Main Layout */}
+//       <Route path="/" element={<LandingPage />} />
+//       <Route
+//         path="/login"
+//         element={
+//           <Layout>
+//             <LoginPage />
+//           </Layout>
+//         }
+//       />
+//       <Route
+//         path="/register"
+//         element={
+//           <Layout>
+//             <RegisterPage />
+//           </Layout>
+//         }
+//       />
+//       <Route
+//         path="/forgot-password"
+//         element={
+//           <Layout>
+//             <ForgotPasswordPage />
+//           </Layout>
+//         }
+//       />
+//       <Route
+//         path="/contact"
+//         element={
+//           <Layout>
+//             <ContactPage />
+//           </Layout>
+//         }
+//       />
+//       <Route
+//         path="/cart"
+//         element={
+//           <Layout>
+//             <CartPage />
+//           </Layout>
+//         }
+//       />
+
+//       {/* Product Routes */}
+//       <Route
+//         path="/products"
+//         element={
+//           <Layout>
+//             <ProductListingPage />
+//           </Layout>
+//         }
+//       />
+//       <Route
+//         path="/products/:id"
+//         element={
+//           <Layout>
+//             <ProductDetailPage />
+//           </Layout>
+//         }
+//       />
+
+//       {/* Category Routes */}
+//       <Route
+//         path="/categories"
+//         element={
+//           <Layout>
+//             <CategoriesPage />
+//           </Layout>
+//         }
+//       />
+//       <Route
+//         path="/products/category/:slug"
+//         element={
+//           <Layout>
+//             <CategoryPage />
+//           </Layout>
+//         }
+//       />
+
+//       {/* Checkout Routes - Protected */}
+//       <Route
+//         path="/checkout"
+//         element={
+//           <ProtectedRoute>
+//             <Layout>
+//               <CheckoutPage />
+//             </Layout>
+//           </ProtectedRoute>
+//         }
+//       />
+//       <Route
+//         path="/checkout/confirmation"
+//         element={
+//           <ProtectedRoute>
+//             <Layout>
+//               <ConfirmationPage />
+//             </Layout>
+//           </ProtectedRoute>
+//         }
+//       />
+
+//       {/* Admin Routes with Admin Layout - PROTECTED */}
+//       <Route
+//         path="/admin"
+//         element={
+//           <AdminRoute>
+//             <AdminLayout />
+//           </AdminRoute>
+//         }
+//       >
+//         <Route index element={<AdminDashboard />} />
+//         <Route path="products" element={<AdminProductManagement />} />
+//         <Route path="users" element={<UserManagement />} />
+//         <Route path="orders" element={<OrderManagement />} />
+//         <Route path="analytics" element={<AnalyticsDashboard />} />
+//         <Route path="inventory" element={<InventoryManager />} />
+//         <Route path="promotions" element={<PromotionsManager />} />
+//       </Route>
+
+//       {/* CUSTOMER DASHBOARD ROUTES - PROTECTED */}
+//       <Route path="/customer">
+//         <Route
+//           path="dashboard"
+//           element={
+//             <CustomerRoute>
+//               <CustomerDashboardLayout>
+//                 <CustomerDashboard />
+//               </CustomerDashboardLayout>
+//             </CustomerRoute>
+//           }
+//         />
+//         <Route
+//           path="orders"
+//           element={
+//             <CustomerRoute>
+//               <CustomerDashboardLayout>
+//                 <CustomerOrders />
+//               </CustomerDashboardLayout>
+//             </CustomerRoute>
+//           }
+//         />
+//         <Route
+//           path="account"
+//           element={
+//             <CustomerRoute>
+//               <CustomerDashboardLayout>
+//                 <CustomerAccount />
+//               </CustomerDashboardLayout>
+//             </CustomerRoute>
+//           }
+//         />
+//         <Route
+//           path="addresses"
+//           element={
+//             <CustomerRoute>
+//               <CustomerDashboardLayout>
+//                 <CustomerAddresses />
+//               </CustomerDashboardLayout>
+//             </CustomerRoute>
+//           }
+//         />
+//         <Route
+//           path="payment-methods"
+//           element={
+//             <CustomerRoute>
+//               <CustomerDashboardLayout>
+//                 <CustomerPaymentMethods />
+//               </CustomerDashboardLayout>
+//             </CustomerRoute>
+//           }
+//         />
+//         <Route
+//           path="reviews"
+//           element={
+//             <CustomerRoute>
+//               <CustomerDashboardLayout>
+//                 <CustomerReviews />
+//               </CustomerDashboardLayout>
+//             </CustomerRoute>
+//           }
+//         />
+//         <Route
+//           path="wishlist"
+//           element={
+//             <CustomerRoute>
+//               <CustomerDashboardLayout>
+//                 <CustomerWishlist />
+//               </CustomerDashboardLayout>
+//             </CustomerRoute>
+//           }
+//         />
+//       </Route>
+
+//       {/* Catch-all route for 404 */}
+//       <Route
+//         path="*"
+//         element={
+//           <Layout>
+//             <div className="min-h-screen flex items-center justify-center">
+//               <div className="text-center">
+//                 <h1 className="text-4xl font-bold text-gray-800">404</h1>
+//                 <p className="text-xl text-gray-600">Page not found</p>
+//                 <a
+//                   href="/"
+//                   className="mt-4 inline-block px-6 py-2 bg-primary-600 text-white rounded-md"
+//                 >
+//                   Go Home
+//                 </a>
+//               </div>
+//             </div>
+//           </Layout>
+//         }
+//       />
+//     </Routes>
+//   );
+// }
+
+// function App() {
+//   return (
+//     <HelmetProvider>
+//       <AuthProvider>
+//         <CartProvider>
+//           <WishlistProvider>
+//             <Router>
+//               <AppRoutes />
+//             </Router>
+//           </WishlistProvider>
+//         </CartProvider>
+//       </AuthProvider>
+//     </HelmetProvider>
+//   );
+// }
+
+// export default App;
