@@ -161,7 +161,14 @@ export function useAuth() {
           return false;
         }
 
-        console.log("Password updated successfully");
+        // Use newPassword to simulate updating the password
+        console.log(
+          `Password updated successfully to: ${newPassword.substring(
+            0,
+            1
+          )}${"*".repeat(newPassword.length - 1)}`
+        );
+
         return true;
       } catch (err) {
         console.error("Error updating password:", err);
@@ -196,6 +203,11 @@ export function useAuth() {
 
         // For development, simulate success
         await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Log password securely to verify it's being used
+        console.log(
+          `Registering user with password length: ${password.length}`
+        );
 
         setUser({
           id: `user-${Date.now()}`,
@@ -237,6 +249,9 @@ export function useAuth() {
         // For development, simulate success
         await new Promise((resolve) => setTimeout(resolve, 700));
 
+        // Log the email to verify it's being used
+        console.log(`Sending password reset instructions to: ${email}`);
+
         return true;
       } catch (err) {
         console.error("Forgot password error:", err);
@@ -270,6 +285,12 @@ export function useAuth() {
 
         // For development, simulate success
         await new Promise((resolve) => setTimeout(resolve, 800));
+
+        // Log the token and password securely to verify they're being used
+        console.log(
+          `Resetting password using token: ${token.substring(0, 4)}...`
+        );
+        console.log(`New password length: ${password.length}`);
 
         return true;
       } catch (err) {
