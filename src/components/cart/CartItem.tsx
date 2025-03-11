@@ -1,5 +1,5 @@
 import React from "react";
-import { useCart } from "../../hooks/useCart";
+import { useCart } from "../../context/CartContext";
 import { CartItem as CartItemType } from "../../types/Cart";
 import { formatCurrency } from "../../utils/currency";
 
@@ -9,6 +9,27 @@ interface CartItemProps {
 
 export const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { updateQuantity, removeItem } = useCart();
+
+  // Function to get a proper image URL
+  const getImageUrl = (image: string | null): string => {
+    if (!image) {
+      return "/placeholder-image.jpg"; // Fallback placeholder
+    }
+
+    // If the image already has http or https, it's a full URL
+    if (image.startsWith("http://") || image.startsWith("https://")) {
+      return image;
+    }
+
+    // If it starts with a slash, it's a relative path from the server
+    if (image.startsWith("/")) {
+      // Add your API base URL if needed
+      return `http://localhost:4000${image}`;
+    }
+
+    // Otherwise, assume it's a relative path
+    return image;
+  };
 
   const handleQuantityChange = (newQuantity: number) => {
     updateQuantity(item.id, newQuantity);
@@ -20,11 +41,16 @@ export const CartItem: React.FC<CartItemProps> = ({ item }) => {
 
   return (
     <div className="flex items-center gap-4 py-4 border-b border-gray-200">
-      <div className="relative w-24 h-24 flex-shrink-0">
+      <div className="relative w-24 h-24 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden">
+        {/* Image with fallback handling */}
         <img
-          src={item.image}
+          src={getImageUrl(item.image)}
           alt={item.name}
-          className="w-full h-full object-cover rounded-md"
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            // If image fails to load, set a fallback
+            (e.target as HTMLImageElement).src = "/placeholder-image.jpg";
+          }}
         />
       </div>
 
@@ -73,3 +99,5 @@ export const CartItem: React.FC<CartItemProps> = ({ item }) => {
     </div>
   );
 };
+
+export default CartItem;
