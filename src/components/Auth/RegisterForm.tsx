@@ -13,7 +13,7 @@ import {
   AlertCircle,
   Loader,
 } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
+// import { FcGoogle } from "react-icons/fc";
 import { motion, AnimatePresence } from "framer-motion";
 
 // API client setup
@@ -542,13 +542,13 @@ const RegisterForm = () => {
               </div>
 
               {/* Google OAuth */}
-              <button
+              {/* <button
                 type="button"
                 className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300 shadow-sm hover:shadow"
               >
                 <FcGoogle className="h-5 w-5" />
                 <span>Continue with Google</span>
-              </button>
+              </button> */}
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
