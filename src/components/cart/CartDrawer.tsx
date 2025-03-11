@@ -1,14 +1,55 @@
 // components/cart/CartDrawer.tsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
-import { CartItem } from "./CartItem";
+import CartItem from "./CartItem";
 import { formatCurrency } from "../../utils/currency";
+import LoginModal from "../Auth/LoginModal";
+import authService from "../../services/authService";
 
 export const CartDrawer: React.FC = () => {
-  const { cart, isOpen, toggleCart } = useCart();
+  const {
+    cart,
+    isOpen,
+    isLoading,
+    toggleCart,
+    clearCart,
+    requiresAuth,
+    clearAuthRequirement,
+  } = useCart();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isClearingCart, setIsClearingCart] = useState(false);
+  const isAuthenticated = authService.isAuthenticated();
+
+  // Watch for requiresAuth changes from cart context
+  useEffect(() => {
+    if (requiresAuth) {
+      setIsLoginModalOpen(true);
+    }
+  }, [requiresAuth]);
 
   const handleClose = () => {
     toggleCart();
+  };
+
+  const handleClearCart = async () => {
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    setIsClearingCart(true);
+    await clearCart();
+    setIsClearingCart(false);
+  };
+
+  const handleLoginSuccess = () => {
+    setIsLoginModalOpen(false);
+    clearAuthRequirement();
+  };
+
+  const handleCloseModal = () => {
+    setIsLoginModalOpen(false);
+    clearAuthRequirement();
   };
 
   return (
@@ -56,16 +97,149 @@ export const CartDrawer: React.FC = () => {
             </div>
           </div>
 
-          {/* Cart Items */}
-          <div className="flex-1 overflow-y-auto px-4">
-            {cart.items.length === 0 ? (
-              <div className="py-8 text-center">
-                <p className="text-gray-500">Your cart is empty</p>
+          {/* Login requirement message if not authenticated */}
+          {!isAuthenticated && (
+            <div className="bg-blue-50 text-blue-700 p-4 border-b border-blue-100">
+              <div className="flex items-center">
+                <svg
+                  className="h-5 w-5 mr-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <p>
+                  Please{" "}
+                  <button
+                    className="font-semibold underline"
+                    onClick={() => setIsLoginModalOpen(true)}
+                  >
+                    sign in
+                  </button>{" "}
+                  to access your cart.
+                </p>
               </div>
-            ) : (
-              cart.items.map((item) => <CartItem key={item.id} item={item} />)
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* Loading state */}
+          {isLoading && (
+            <div className="flex justify-center items-center py-8 text-gray-500">
+              <svg
+                className="animate-spin h-8 w-8 mr-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Loading your cart...
+            </div>
+          )}
+
+          {/* Cart Items */}
+          {!isLoading && (
+            <div className="flex-1 overflow-y-auto px-4">
+              {cart.items.length === 0 ? (
+                <div className="py-8 text-center">
+                  <svg
+                    className="w-16 h-16 mx-auto text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                    />
+                  </svg>
+                  <p className="text-gray-500 mt-4">Your cart is empty</p>
+                  <button
+                    onClick={handleClose}
+                    className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                  >
+                    Continue Shopping
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {isAuthenticated && (
+                    <div className="flex justify-end pt-2">
+                      <button
+                        onClick={handleClearCart}
+                        className="text-sm text-red-600 hover:text-red-800 flex items-center"
+                        disabled={isClearingCart}
+                      >
+                        {isClearingCart ? (
+                          <>
+                            <svg
+                              className="animate-spin h-3 w-3 mr-1"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            Clearing...
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="h-4 w-4 mr-1"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                            Clear Cart
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                  {cart.items.map((item) => (
+                    <CartItem key={item.id} item={item} />
+                  ))}
+                </>
+              )}
+            </div>
+          )}
 
           {/* Summary */}
           {cart.items.length > 0 && (
@@ -94,16 +268,33 @@ export const CartDrawer: React.FC = () => {
               </div>
               <div className="mt-6">
                 <button
-                  onClick={() => (window.location.href = "/checkout")}
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      window.location.href = "/checkout";
+                    } else {
+                      setIsLoginModalOpen(true);
+                    }
+                  }}
                   className="w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 transition-colors"
                 >
-                  Proceed to Checkout
+                  {isAuthenticated
+                    ? "Proceed to Checkout"
+                    : "Sign In to Checkout"}
                 </button>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={handleCloseModal}
+        onSuccess={handleLoginSuccess}
+      />
     </>
   );
 };
+
+export default CartDrawer;
