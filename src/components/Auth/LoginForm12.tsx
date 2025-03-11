@@ -8,7 +8,7 @@ import {
   FaCheckCircle,
   FaExclamationCircle,
 } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
+// import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -216,24 +216,24 @@ const LoginForm: React.FC = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      // This would typically redirect to Google OAuth
-      // For now, show a temporary error since we're using a custom API
-      setErrors({
-        ...errors,
-        server:
-          "Google login is not configured with the current API. Please use email/password login.",
-      });
-    } catch (error) {
-      console.error("Google login failed:", error);
-      setErrors({
-        ...errors,
-        server:
-          "Google authentication failed. Please try again or use email/password login.",
-      });
-    }
-  };
+  // const handleGoogleLogin = async () => {
+  //   try {
+  //     // This would typically redirect to Google OAuth
+  //     // For now, show a temporary error since we're using a custom API
+  //     setErrors({
+  //       ...errors,
+  //       server:
+  //         "Google login is not configured with the current API. Please use email/password login.",
+  //     });
+  //   } catch (error) {
+  //     console.error("Google login failed:", error);
+  //     setErrors({
+  //       ...errors,
+  //       server:
+  //         "Google authentication failed. Please try again or use email/password login.",
+  //     });
+  //   }
+  // };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
@@ -302,14 +302,14 @@ const LoginForm: React.FC = () => {
         )}
 
         {/* Google OAuth Button */}
-        <button
+        {/* <button
           onClick={handleGoogleLogin}
           disabled={loading}
           className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <FcGoogle className="h-5 w-5" />
           <span>{loading ? "Signing in..." : "Continue with Google"}</span>
-        </button>
+        </button> */}
 
         {/* Divider */}
         <div className="relative">
