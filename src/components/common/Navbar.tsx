@@ -865,7 +865,7 @@ const Navbar: React.FC = () => {
                 Deals
               </Link>
               <Link
-                to="/new-arrivals"
+                to="/products"
                 className="text-gray-700 hover:text-blue-600 h-full flex items-center"
               >
                 New Arrivals
