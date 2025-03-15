@@ -291,6 +291,14 @@ generate_commit_message() {
     
     # Determine commit type based on file path
     case "$file" in
+        package-lock.json)
+            type="chore(deps)"
+            message="update package dependencies lock"
+            ;;
+        package.json)
+            type="chore(deps)"
+            message="update project dependencies"
+            ;;
         *customer-dashboard/*)
             type="feat(customer)"
             message="add $(basename "$file" .tsx | sed 's/([A-Z])/ \L\1/g' | sed 's/^[a-z]/\U&/') component"
@@ -311,9 +319,13 @@ generate_commit_message() {
             type="fix(products)"
             message="update product details view"
             ;;
+        *components/products/Filters.tsx)
+            type="fix(products)"
+            message="update product filters component"
+            ;;
         *components/SearchBar.tsx)
-            type="feat(search)"
-            message="add search functionality"
+            type="fix(search)"
+            message="update search functionality"
             ;;
         *components/categories/*)
             type="feat(categories)"
@@ -355,6 +367,14 @@ generate_commit_message() {
             type="feat(api)"
             message="add API configuration"
             ;;
+        *services/authService.ts)
+            type="feat(auth)"
+            message="add authentication service"
+            ;;
+        *services/cartservice.ts)
+            type="feat(cart)"
+            message="add cart service"
+            ;;
         *services/*)
             type="feat(api)"
             message="add service layer for API communication"
@@ -391,6 +411,18 @@ generate_commit_message() {
             type="feat(routing)"
             message="update routing configuration"
             ;;
+        *Auth/LoginForm12.tsx)
+            type="fix(auth)"
+            message="update login form"
+            ;;
+        *Auth/RegisterForm.tsx)
+            type="fix(auth)"
+            message="update registration form"
+            ;;
+        *Auth/LoginModal.tsx)
+            type="fix(auth)"
+            message="update login modal component"
+            ;;
         *Auth/*)
             type="fix(auth)"
             message="fix authentication in $(basename "$file" .tsx)"
@@ -398,6 +430,14 @@ generate_commit_message() {
         *context/AuthContext.tsx)
             type="fix(auth)"
             message="update authentication context"
+            ;;
+        *context/CartContext.tsx)
+            type="fix(cart)"
+            message="update cart context"
+            ;;
+        *context/CheckoutContext.tsx)
+            type="feat(checkout)"
+            message="add checkout context"
             ;;
         *hooks/useAuth.ts)
             type="fix(auth)"
@@ -414,6 +454,46 @@ generate_commit_message() {
         *hooks/useProduct.ts)
             type="fix(products)"
             message="update product hook functionality"
+            ;;
+        *hooks/useCheckout.tsx)
+            type="feat(checkout)"
+            message="add checkout management hook"
+            ;;
+        *components/cart/CartDrawer.tsx)
+            type="fix(cart)"
+            message="update cart drawer component"
+            ;;
+        *components/cart/CartItem.tsx)
+            type="fix(cart)"
+            message="update cart item component"
+            ;;
+        *components/cart/CartSummary.tsx)
+            type="fix(cart)"
+            message="update cart summary component"
+            ;;
+        *components/checkout/PaymentForm.tsx)
+            type="fix(checkout)"
+            message="update payment form component"
+            ;;
+        *components/checkout/AddressForm.tsx)
+            type="fix(checkout)"
+            message="update address form component"
+            ;;
+        *components/checkout/OrderSummary.tsx)
+            type="fix(checkout)"
+            message="update order summary component"
+            ;;
+        *components/checkout/OrderConfirmation.tsx)
+            type="feat(checkout)"
+            message="add order confirmation component"
+            ;;
+        *pages/checkout/confirmation.tsx)
+            type="fix(checkout)"
+            message="update checkout confirmation page"
+            ;;
+        *pages/checkout/index.tsx)
+            type="fix(checkout)"
+            message="update checkout page"
             ;;
         *dashboards/AdminLayout.tsx)
             type="fix(admin)"
@@ -459,44 +539,21 @@ commit_and_push_changes() {
     # Modified files from git status
     modified_files=(
         "commit_changes.sh"
-        "src/App.tsx"
-        "src/components/Auth/ForgotPassword.tsx"
-        "src/components/Auth/LoginForm12.tsx"
-        "src/components/Auth/RegisterForm.tsx"
-        "src/components/common/Navbar.tsx"
-        "src/components/customer-dashboard/AddressBook.tsx"
-        "src/components/customer-dashboard/DashboardLayout.tsx"
-        "src/components/customer-dashboard/ReviewsHistory.tsx"
-        "src/components/products/ProductCard.tsx"
-        "src/components/products/ProductDetails.tsx"
-        "src/context/AuthContext.tsx"
-        "src/hooks/useAuth.ts"
-        "src/hooks/useOrder.tsx"
-        "src/hooks/useProduct.ts"
-        "src/hooks/useWishlist.ts"
-        "src/pages/admin/products.tsx"
-        "src/pages/customer/dashboard.tsx"
-        "src/pages/index.tsx"
-        "src/pages/products/index.tsx"
-        "src/types/Product.ts"
+        "package-lock.json"
+        "package.json"
+        "src/components/Auth/LoginModal.tsx"
+        "src/components/cart/CartSummary.tsx"
+        "src/components/checkout/AddressForm.tsx"
+        "src/components/checkout/OrderSummary.tsx"
+        "src/components/checkout/PaymentForm.tsx"
+        "src/pages/checkout/index.tsx"
     )
     
     # Untracked files from git status
     untracked_files=(
-        "src/components/SearchBar.tsx"
-        "src/components/categories/"
-        "src/components/dashboards/ProductDetailModal.tsx"
-        "src/components/dashboards/ProductFilters.tsx"
-        "src/components/dashboards/ProductFormModal.tsx"
-        "src/components/dashboards/ProductList.tsx"
-        "src/components/hero/"
-        "src/components/shared/Pagination.tsx"
-        "src/config/apiConfig.ts"
-        "src/pages/admin/AdminProductManagement.tsx"
-        "src/pages/categories/"
-        "src/pages/products/category/"
-        "src/services/"
-        "src/utils/productApi.ts"
+        "src/components/checkout/OrderConfirmation.tsx"
+        "src/context/CheckoutContext.tsx"
+        "src/hooks/useCheckout.tsx"
     )
     
     # Process modified files
