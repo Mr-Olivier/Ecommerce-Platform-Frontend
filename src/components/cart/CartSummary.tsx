@@ -1,11 +1,36 @@
 // components/cart/CartSummary.tsx
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { formatCurrency } from "../../utils/currency";
 import { CartItem } from "../../types/Cart";
+import LoginModal from "../Auth/LoginModal";
 
 export const CartSummary: React.FC = () => {
   const { cart } = useCart();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleProceedToCheckout = () => {
+    // Check if user is logged in
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      console.log("No token found, showing login modal");
+      setIsLoginModalOpen(true);
+    } else {
+      console.log("User is logged in, proceeding to checkout");
+      navigate("/checkout");
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    console.log("Login successful, navigating to checkout");
+    setIsLoginModalOpen(false);
+
+    // Navigate to checkout after successful login
+    navigate("/checkout");
+  };
 
   return (
     <div className="bg-gray-50 rounded-lg p-6 space-y-4">
@@ -58,11 +83,20 @@ export const CartSummary: React.FC = () => {
       <div className="mt-6">
         <button
           className="w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 transition-colors"
-          onClick={() => (window.location.href = "/checkout")}
+          onClick={handleProceedToCheckout}
         >
           Proceed to Checkout
         </button>
       </div>
+
+      {/* Login Modal - rendering this way ensures it will appear properly */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSuccess={handleLoginSuccess}
+      />
     </div>
   );
 };
+
+export default CartSummary;
