@@ -414,7 +414,7 @@ const LandingPage = () => {
       </section>
 
       {/* Scroll to Top Button */}
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {showScrollTop && (
           <motion.button
             initial={{ opacity: 0, y: 10 }}
@@ -428,7 +428,7 @@ const LandingPage = () => {
             <ArrowUp className="h-6 w-6" />
           </motion.button>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
     </Layout>
   );
 };
