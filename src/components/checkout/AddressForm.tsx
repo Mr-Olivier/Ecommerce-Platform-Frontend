@@ -1,7 +1,7 @@
 // components/checkout/AddressForm.tsx
 import React from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useCheckout } from "../../hooks/useCheckout";
+import { useCheckoutContext } from "../../context/CheckoutContext";
 
 interface AddressFormProps {
   nextStep: () => void;
@@ -19,7 +19,8 @@ interface FormData {
 }
 
 const AddressForm: React.FC<AddressFormProps> = ({ nextStep }) => {
-  const { createCheckoutSession, isLoading, error } = useCheckout();
+  const { createCheckoutSession, saveAddressData, isLoading, error } =
+    useCheckoutContext();
   const {
     register,
     handleSubmit,
@@ -27,7 +28,14 @@ const AddressForm: React.FC<AddressFormProps> = ({ nextStep }) => {
   } = useForm<FormData>();
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    // Create a checkout session with the address data
+    // First, save the address data to context
+    if (typeof saveAddressData === "function") {
+      saveAddressData(data);
+    } else {
+      console.error("saveAddressData function is not available in context");
+    }
+
+    // Then create a checkout session with the address data
     const result = await createCheckoutSession(data);
 
     if (result.success) {
