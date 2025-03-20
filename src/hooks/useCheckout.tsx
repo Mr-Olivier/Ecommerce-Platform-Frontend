@@ -200,7 +200,11 @@ export const useCheckout = () => {
     }
   };
 
-  const confirmPayment = async (paymentIntentId: string) => {
+  const confirmPayment = async (
+    paymentIntentId: string,
+    orderIdParam?: string,
+    testMode: boolean = true // Default to true for testing
+  ) => {
     // Check if user is authenticated
     const currentToken = localStorage.getItem("token");
     if (!currentToken) {
@@ -211,53 +215,80 @@ export const useCheckout = () => {
     setIsLoading(true);
     setError(null);
 
-    console.log(
-      "Confirming payment with ID:",
+    // Use orderIdParam if provided, otherwise fall back to the one in state
+    const paymentOrderId = orderIdParam || orderId;
+
+    console.log("Exactly replicating successful Postman request");
+    console.log("Parameters:", {
       paymentIntentId,
-      "and orderId:",
-      orderId
-    );
+      orderId: paymentOrderId,
+      testMode,
+    });
 
     try {
-      const api = getApi();
-      const response = await api.post<PaymentConfirmationResponse>(
-        "/checkout/confirm-payment",
+      // Use fetch API directly to match exactly what Postman is doing
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:4000/api"
+        }/checkout/confirm-payment`,
         {
-          paymentIntentId,
-          orderId,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${currentToken}`,
+          },
+          body: JSON.stringify({
+            paymentIntentId,
+            orderId: paymentOrderId,
+            testMode,
+          }),
         }
       );
 
-      console.log("Confirm payment response:", response.data);
+      // Log raw response for debugging
+      const text = await response.text();
+      console.log("Raw response:", text);
 
-      if (response.data.status === "success") {
+      // Parse response if it's JSON
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        console.error("Response is not valid JSON");
+        return { success: false, error: "Invalid response from server" };
+      }
+
+      console.log("Parsed response:", data);
+
+      if (data.status === "success") {
         console.log("Payment confirmed successfully");
         setPaymentSuccess(true);
-        clearCart();
+
+        // Store order details in localStorage for the confirmation page
+        localStorage.setItem(
+          "completedOrder",
+          JSON.stringify({
+            id: paymentOrderId,
+            paymentId: paymentIntentId,
+            date: new Date().toISOString(),
+            amount: data.data?.order?.totalAmount || "0",
+          })
+        );
+
+        // Set a flag to clear cart after redirection completes
+        sessionStorage.setItem("clearCartAfterPayment", "true");
+
+        // Don't clear cart here to prevent redirect issues
+        // clearCart(); - MOVED TO CONFIRMATION PAGE
+
         return { success: true };
       } else {
-        console.error("Payment confirmation failed:", response.data.message);
-        setError(response.data.message || "Payment confirmation failed");
-        return { success: false, error: response.data.message };
+        console.error("Payment confirmation failed:", data.message);
+        setError(data.message || "Payment confirmation failed");
+        return { success: false, error: data.message };
       }
     } catch (err) {
       console.error("Exception in confirmPayment:", err);
-
-      if (axios.isAxiosError(err)) {
-        // Handle 401 Unauthorized specifically
-        if (err.response?.status === 401) {
-          setError("Your session has expired. Please log in again.");
-          return { success: false, error: "Authentication required" };
-        }
-
-        const errorMessage =
-          err.response?.data?.message ||
-          err.message ||
-          "An error occurred during payment confirmation";
-        setError(errorMessage);
-        return { success: false, error: errorMessage };
-      }
-
       const errorMessage =
         err instanceof Error ? err.message : "An error occurred";
       setError(errorMessage);
