@@ -5,7 +5,7 @@ import { SEOHead } from "../../components/common/SEOHead";
 import { ContactForm } from "../../components/contact/ContactForm";
 import { ContactInfo } from "../../components/contact/ContactInfo";
 import { ContactMap } from "../../components/contact/ContactMap";
-import { FAQSection } from "../../components/contact/FAQSection";
+// import { FAQSection } from "../../components/contact/FAQSection";
 import { MessageCircle, Mail, Clock, MapPin } from "lucide-react";
 
 const ContactPage: React.FC = () => {
@@ -141,16 +141,16 @@ const ContactPage: React.FC = () => {
           initial="initial"
           animate="animate"
         >
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+          {/* <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
             Frequently Asked Questions
-          </h2>
-          <div className="max-w-3xl mx-auto">
+          </h2> */}
+          {/* <div className="max-w-3xl mx-auto">
             <FAQSection />
-          </div>
+          </div> */}
         </motion.div>
 
         {/* Newsletter Section */}
-        <motion.div
+        {/* <motion.div
           className="mt-16 text-center"
           variants={fadeInUp}
           initial="initial"
@@ -183,10 +183,10 @@ const ContactPage: React.FC = () => {
               Subscribe
             </button>
           </form>
-        </motion.div>
+        </motion.div> */}
 
         {/* Additional Support Links */}
-        <div className="mt-16 text-center">
+        {/* <div className="mt-16 text-center">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Additional Support Options
           </h3>
@@ -212,7 +212,7 @@ const ContactPage: React.FC = () => {
               Community Forum
             </a>
           </div>
-        </div>
+        </div> */}
       </div>
     </>
   );
