@@ -27,8 +27,20 @@ interface CheckoutContextType {
     orderId?: string;
   }>;
   confirmPayment: (
-    paymentIntentId: string
+    paymentIntentId: string,
+    orderIdParam?: string,
+    testMode?: boolean,
+    skipValidation?: boolean // Add this parameter
   ) => Promise<{ success: boolean; error?: string }>;
+  validatePayment: (
+    paymentIntentId: string,
+    orderIdParam?: string
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+    status?: string;
+    paymentDetails?: any;
+  }>;
   validateSession: () => Promise<boolean>;
   debugCheckout: () => void;
 }
@@ -56,6 +68,10 @@ const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) => {
   );
   const [localOrderId, setLocalOrderId] = useState<string | null>(() =>
     localStorage.getItem("checkoutOrderId")
+  );
+  const [paymentState, setPaymentState] = useState<string>("initial"); // 'initial', 'processing', 'confirmed', 'failed'
+  const [lastPaymentIntentId, setLastPaymentIntentId] = useState<string | null>(
+    null
   );
 
   // For debugging: Track context renders
@@ -105,6 +121,50 @@ const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) => {
     setAddressData(data);
     localStorage.setItem("checkoutAddressData", JSON.stringify(data));
   }, []);
+
+  const validatePayment = useCallback(
+    async (paymentIntentId: string, orderIdParam?: string) => {
+      if (!paymentIntentId) {
+        console.error("❌ No payment intent ID provided for validation");
+        return { success: false, error: "No payment intent ID provided" };
+      }
+
+      console.log("🔍 Context: Validating payment", paymentIntentId);
+
+      try {
+        // Call the hook's validatePayment function with appropriate parameters
+        const result = await apiValidatePayment(paymentIntentId, orderIdParam);
+
+        if (result.success) {
+          console.log("✅ Context: Payment validation successful");
+          // If the payment is valid, we can store the payment intent ID
+          setLastPaymentIntentId(paymentIntentId);
+
+          // Update payment state based on validation result
+          if (result.status === "valid" || result.status === "succeeded") {
+            setPaymentState("confirmed");
+          } else if (result.status === "processing") {
+            setPaymentState("processing");
+          } else {
+            setPaymentState("initial");
+          }
+        } else {
+          console.error("❌ Context: Payment validation failed", result.error);
+          setPaymentState("failed");
+        }
+
+        return result;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Payment validation failed";
+        console.error("❌ Context: Error validating payment:", errorMessage);
+        setPaymentError(errorMessage);
+        setPaymentState("failed");
+        return { success: false, error: errorMessage };
+      }
+    },
+    []
+  );
 
   const createCheckoutSession = useCallback(
     async (data: any) => {
@@ -160,10 +220,16 @@ const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) => {
   );
 
   const confirmPayment = useCallback(
-    async (paymentIntentId: string) => {
+    async (
+      paymentIntentId: string,
+      orderIdParam?: string,
+      testMode: boolean = true,
+      skipValidation: boolean = false
+    ) => {
       console.log("💳 Context: Confirming payment with ID:", paymentIntentId);
       console.log("🔐 Context: Using client secret:", localClientSecret);
       console.log("📋 Context: Using order ID:", localOrderId);
+      console.log("🔄 Context: Skip validation:", skipValidation);
 
       // Backup: if context state doesn't have values, try localStorage
       const backupClientSecret = localStorage.getItem("checkoutClientSecret");
@@ -186,7 +252,13 @@ const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) => {
 
       try {
         console.log("⏳ Context: Calling API confirmPayment...");
-        const result = await apiConfirmPayment(paymentIntentId);
+        // Pass the skipValidation parameter to the hook function
+        const result = await apiConfirmPayment(
+          paymentIntentId,
+          orderIdParam,
+          testMode,
+          skipValidation
+        );
         console.log("📦 Context: Payment confirmation result:", result);
 
         if (result.success) {
@@ -195,6 +267,8 @@ const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) => {
           localStorage.removeItem("checkoutOrderId");
           setLocalClientSecret(null);
           setLocalOrderId(null);
+          setPaymentState("initial");
+          setLastPaymentIntentId(null);
         }
 
         return result;
