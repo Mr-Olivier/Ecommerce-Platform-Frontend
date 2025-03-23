@@ -311,6 +311,14 @@ generate_commit_message() {
             type="fix(ui)"
             message="update navigation component"
             ;;
+        *components/common/Footer.tsx)
+            type="fix(ui)"
+            message="update footer component"
+            ;;
+        *components/common/ChatWidget.tsx)
+            type="feat(ui)"
+            message="add chat widget component"
+            ;;
         *components/products/ProductCard.tsx)
             type="fix(products)"
             message="update product card component"
@@ -342,6 +350,10 @@ generate_commit_message() {
         *pages/admin/products.tsx)
             type="fix(admin)"
             message="update product management page"
+            ;;
+        *pages/admin/orders.tsx)
+            type="fix(admin)"
+            message="update orders management page"
             ;;
         *pages/admin/AdminProductManagement.tsx)
             type="feat(admin)"
@@ -383,13 +395,17 @@ generate_commit_message() {
             type="feat(api)"
             message="add product API utilities"
             ;;
+        *utils/checkoutUtils.tsx)
+            type="feat(checkout)"
+            message="add checkout utility functions"
+            ;;
         *types/Product.ts)
             type="fix(types)"
             message="update product type definitions"
             ;;
         *contact/ContactForm.tsx)
-            type="feat(contact)"
-            message="add contact form component"
+            type="fix(contact)"
+            message="update contact form component"
             ;;
         *contact/ContactInfo.tsx)
             type="feat(contact)"
@@ -403,9 +419,9 @@ generate_commit_message() {
             type="feat(contact)"
             message="add FAQ section component"
             ;;
-        *contact/index.tsx)
-            type="feat(contact)"
-            message="implement contact page"
+        *pages/contact/index.tsx)
+            type="fix(contact)"
+            message="update contact page"
             ;;
         *App.tsx)
             type="feat(routing)"
@@ -436,8 +452,8 @@ generate_commit_message() {
             message="update cart context"
             ;;
         *context/CheckoutContext.tsx)
-            type="feat(checkout)"
-            message="add checkout context"
+            type="fix(checkout)"
+            message="update checkout context"
             ;;
         *hooks/useAuth.ts)
             type="fix(auth)"
@@ -456,8 +472,8 @@ generate_commit_message() {
             message="update product hook functionality"
             ;;
         *hooks/useCheckout.tsx)
-            type="feat(checkout)"
-            message="add checkout management hook"
+            type="fix(checkout)"
+            message="update checkout management hook"
             ;;
         *components/cart/CartDrawer.tsx)
             type="fix(cart)"
@@ -515,6 +531,10 @@ generate_commit_message() {
             type="feat(admin)"
             message="add product listing component for admin"
             ;;
+        commit_changes.sh)
+            type="chore(scripts)"
+            message="update git commit automation script"
+            ;;
         *)
             type="feat"
             message="add ${file##*/}"
@@ -536,24 +556,20 @@ check_git_repo() {
 commit_and_push_changes() {
     check_git_repo
     
-    # Modified files from git status
+    # Modified files from current git status
     modified_files=(
         "commit_changes.sh"
         "package-lock.json"
         "package.json"
-        "src/components/Auth/LoginModal.tsx"
-        "src/components/cart/CartSummary.tsx"
-        "src/components/checkout/AddressForm.tsx"
-        "src/components/checkout/OrderSummary.tsx"
         "src/components/checkout/PaymentForm.tsx"
-        "src/pages/checkout/index.tsx"
-    )
-    
-    # Untracked files from git status
-    untracked_files=(
-        "src/components/checkout/OrderConfirmation.tsx"
+        "src/components/common/ChatWidget.tsx"
+        "src/components/dashboards/AdminLayout.tsx"
         "src/context/CheckoutContext.tsx"
+        "src/hooks/useAuth.ts"
         "src/hooks/useCheckout.tsx"
+        "src/hooks/useOrder.tsx"
+        "src/pages/admin/orders.tsx"
+        "src/pages/customer/orders.tsx"
     )
     
     # Process modified files
@@ -565,30 +581,6 @@ commit_and_push_changes() {
             echo "Committed modified file: $file with message - $commit_message"
         else
             echo "Warning: Modified file $file does not exist"
-        fi
-    done
-    
-    # Process untracked files
-    for file in "${untracked_files[@]}"; do
-        if [ -f "$file" ] || [ -d "$file" ]; then
-            commit_message=$(generate_commit_message "$file")
-            git add "$file"
-            git commit -m "$commit_message"
-            echo "Committed new file: $file with message - $commit_message"
-        else
-            # Handle directories by adding all files in them
-            if [[ "$file" == */ ]]; then
-                if [ -d "$file" ]; then
-                    commit_message=$(generate_commit_message "$file")
-                    git add "$file"
-                    git commit -m "$commit_message"
-                    echo "Committed new directory: $file with message - $commit_message"
-                else
-                    echo "Warning: Untracked directory $file does not exist"
-                fi
-            else
-                echo "Warning: Untracked file $file does not exist"
-            fi
         fi
     done
     
