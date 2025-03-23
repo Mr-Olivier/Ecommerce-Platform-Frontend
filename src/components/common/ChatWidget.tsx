@@ -140,7 +140,9 @@ const ChatWidget = () => {
 
   // Refs for new components
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Common emojis for quick access
@@ -163,17 +165,22 @@ const ChatWidget = () => {
   // Handle click outside of menu and emoji picker
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
+      // If click is outside the menu and not on the menu button
       if (
         menuRef.current &&
         !menuRef.current.contains(event.target as Node) &&
-        !(event.target as HTMLElement).closest('[data-menu-button="true"]')
+        menuButtonRef.current &&
+        !menuButtonRef.current.contains(event.target as Node)
       ) {
         setIsMenuOpen(false);
       }
+
+      // If click is outside the emoji picker and not on the emoji button
       if (
         emojiPickerRef.current &&
         !emojiPickerRef.current.contains(event.target as Node) &&
-        !(event.target as HTMLElement).closest('[data-emoji-button="true"]')
+        emojiButtonRef.current &&
+        !emojiButtonRef.current.contains(event.target as Node)
       ) {
         setIsEmojiPickerOpen(false);
       }
@@ -183,7 +190,7 @@ const ChatWidget = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [menuRef, menuButtonRef, emojiPickerRef, emojiButtonRef]);
 
   // Function to get customer information before starting chat
   const handleStartChat = (e: React.FormEvent) => {
@@ -258,11 +265,15 @@ const ChatWidget = () => {
     setTimeout(() => {
       inputRef.current?.focus();
     }, 50);
+    // Close emoji picker after selection
+    setIsEmojiPickerOpen(false);
   };
 
   // Toggle emoji picker
   const toggleEmojiPicker = () => {
     setIsEmojiPickerOpen(!isEmojiPickerOpen);
+    // Close menu if it's open
+    if (isMenuOpen) setIsMenuOpen(false);
   };
 
   // Handle sending message in chat
@@ -389,7 +400,10 @@ const ChatWidget = () => {
 
   // Menu functions
   const toggleMenu = () => {
+    // Toggle menu state
     setIsMenuOpen(!isMenuOpen);
+    // Close emoji picker if it's open
+    if (isEmojiPickerOpen) setIsEmojiPickerOpen(false);
   };
 
   const toggleSound = () => {
@@ -488,14 +502,16 @@ const ChatWidget = () => {
         )}
       </button>
 
-      {/* Promo text */}
-      {/* <div className="fixed bottom-2 right-6 text-xs text-green-600 font-medium z-50">
-        🌿 Add free live chat to your site
-      </div> */}
-
       {/* On-site Chat Widget */}
       {isChatOpen && (
-        <div className="fixed bottom-24 right-6 bg-white rounded-lg shadow-xl w-80 z-50 overflow-hidden border border-gray-200">
+        <div
+          className={`fixed bottom-24 right-6 bg-white rounded-lg shadow-xl w-80 z-50 overflow-hidden border border-gray-200
+             ${
+               isPopped
+                 ? "top-24 left-24 h-[calc(100vh-48px)] w-[calc(100vw-48px)]"
+                 : ""
+             }`}
+        >
           <div className="bg-[#0066CC] text-white p-3">
             <div className="flex justify-between items-center">
               <div className="flex items-center">
@@ -506,10 +522,10 @@ const ChatWidget = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <button
+                  ref={menuButtonRef}
                   onClick={toggleMenu}
                   className="hover:bg-[#0055AA] p-1 rounded transition-colors"
                   aria-label="Menu"
-                  data-menu-button="true"
                 >
                   <Menu className="h-4 w-4" />
                 </button>
@@ -520,73 +536,79 @@ const ChatWidget = () => {
                   <X className="h-4 w-4" />
                 </button>
               </div>
-
-              {/* MENU OPTIONS */}
-              {isMenuOpen && (
-                <div
-                  ref={menuRef}
-                  className="absolute right-0 top-full mt-1 bg-white rounded-md shadow-lg border border-gray-200 w-48 z-10"
-                >
-                  <ul className="py-1">
-                    <li>
-                      <button
-                        onClick={changeName}
-                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
-                      >
-                        <User className="h-4 w-4 mr-2 text-gray-500" />
-                        Change Name
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={emailTranscript}
-                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
-                      >
-                        <FileText className="h-4 w-4 mr-2 text-gray-500" />
-                        Email transcript
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={toggleSound}
-                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
-                      >
-                        <Volume2 className="h-4 w-4 mr-2 text-gray-500" />
-                        Sound {isSoundOn ? "Off" : "On"}
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={togglePopOut}
-                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
-                      >
-                        <Maximize2 className="h-4 w-4 mr-2 text-gray-500" />
-                        {isPopped ? "Minimize widget" : "Pop out widget"}
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={endChatSession}
-                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
-                      >
-                        <LogOut className="h-4 w-4 mr-2 text-gray-500" />
-                        End this chat session
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={addToWebsite}
-                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
-                      >
-                        <Code className="h-4 w-4 mr-2 text-gray-500" />
-                        Add Chat to your website
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              )}
             </div>
             <p className="text-xs mt-1">We typically reply within minutes</p>
+
+            {/* MENU OPTIONS - Positioned directly under the menu button */}
+            {isMenuOpen && (
+              <div
+                ref={menuRef}
+                style={{
+                  right: 0,
+                  top: "100%",
+                  position: "absolute",
+                  zIndex: 1000,
+                }}
+                className="mt-1 bg-white rounded-md shadow-lg border border-gray-200 w-48"
+              >
+                <ul className="py-1">
+                  <li>
+                    <button
+                      onClick={changeName}
+                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
+                    >
+                      <User className="h-4 w-4 mr-2 text-gray-500" />
+                      Change Name
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={emailTranscript}
+                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
+                    >
+                      <FileText className="h-4 w-4 mr-2 text-gray-500" />
+                      Email transcript
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={toggleSound}
+                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
+                    >
+                      <Volume2 className="h-4 w-4 mr-2 text-gray-500" />
+                      Sound {isSoundOn ? "Off" : "On"}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={togglePopOut}
+                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
+                    >
+                      <Maximize2 className="h-4 w-4 mr-2 text-gray-500" />
+                      {isPopped ? "Minimize widget" : "Pop out widget"}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={endChatSession}
+                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
+                    >
+                      <LogOut className="h-4 w-4 mr-2 text-gray-500" />
+                      End this chat session
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={addToWebsite}
+                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center"
+                    >
+                      <Code className="h-4 w-4 mr-2 text-gray-500" />
+                      Add Chat to your website
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
 
           {!isInitialInfoProvided ? (
@@ -790,8 +812,8 @@ const ChatWidget = () => {
               {isEmojiPickerOpen && (
                 <div
                   ref={emojiPickerRef}
-                  className="border-t border-gray-200 bg-white absolute bottom-20 left-0 right-0 shadow-md"
-                  style={{ maxHeight: "150px", overflowY: "auto", zIndex: 5 }}
+                  className="absolute bottom-20 left-0 right-0 bg-white border-t border-gray-200 shadow-md"
+                  style={{ maxHeight: "150px", overflowY: "auto", zIndex: 10 }}
                 >
                   <div className="p-2">
                     <input
@@ -832,12 +854,10 @@ const ChatWidget = () => {
                         .map((emoji, i) => (
                           <button
                             key={i}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1 hover:bg-gray-100 rounded cursor-pointer"
                             onClick={() => handleEmojiClick(emoji)}
                           >
-                            <span className="text-lg cursor-pointer">
-                              {emoji}
-                            </span>
+                            <span className="text-lg">{emoji}</span>
                           </button>
                         ))}
                     </div>
@@ -891,9 +911,9 @@ const ChatWidget = () => {
                     />
                     <button
                       type="button"
+                      ref={emojiButtonRef}
                       onClick={toggleEmojiPicker}
                       className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                      data-emoji-button="true"
                     >
                       😀
                     </button>
@@ -912,7 +932,7 @@ const ChatWidget = () => {
                 </div>
               )}
 
-              {/* Footer with thumbs up/down */}
+              {/* Footer with thumbs up/down - Uncomment if needed */}
               {/* <div className="p-2 bg-white border-t border-gray-200 flex justify-between items-center">
                 <div className="text-xs text-gray-500">
                   Type here and press enter...
