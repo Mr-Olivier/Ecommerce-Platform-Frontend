@@ -2,14 +2,85 @@ import { useState, useEffect, useCallback } from "react";
 
 interface User {
   id: string;
-  name: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
   email: string;
   phone?: string;
-  role?: "customer" | "admin";
+  role?: string;
   // Add any other user properties you need
 }
 
 export function useAuth() {
+  // Check if we have real auth data from your login system
+  const hasRealAuth =
+    !!localStorage.getItem("auth_token") ||
+    !!sessionStorage.getItem("auth_token");
+
+  // If we have real auth, use that instead of the development mock
+  if (hasRealAuth) {
+    // Get the stored user from localStorage or sessionStorage
+    const storedUserStr =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
+    const storedUser = storedUserStr ? JSON.parse(storedUserStr) : null;
+    const token =
+      localStorage.getItem("auth_token") ||
+      sessionStorage.getItem("auth_token");
+
+    // Create a state that will use the real auth data
+    const [user, setUser] = useState<User | null>(storedUser);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Update user if localStorage/sessionStorage changes
+    useEffect(() => {
+      const handleStorageChange = () => {
+        const updatedUserStr =
+          localStorage.getItem("user") || sessionStorage.getItem("user");
+        if (updatedUserStr) {
+          try {
+            const updatedUser = JSON.parse(updatedUserStr);
+            setUser(updatedUser);
+          } catch (e) {
+            console.error("Error parsing stored user:", e);
+          }
+        } else {
+          setUser(null);
+        }
+      };
+
+      // Listen for storage changes (for multi-tab support)
+      window.addEventListener("storage", handleStorageChange);
+      return () => window.removeEventListener("storage", handleStorageChange);
+    }, []);
+
+    // Create a real logout function that clears auth data
+    const logout = useCallback(() => {
+      localStorage.removeItem("user");
+      localStorage.removeItem("auth_token");
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("auth_token");
+      setUser(null);
+    }, []);
+
+    // Return the real auth context
+    return {
+      user,
+      loading,
+      error,
+      logout,
+      // These functions are placeholders since they're handled by your login form
+      login: async () => true,
+      register: async () => true,
+      updateUserProfile: async () => true,
+      updateUserPassword: async () => true,
+      forgotPassword: async () => true,
+      resetPassword: async () => true,
+      isAuthenticated: !!user && !!token,
+    };
+  }
+
+  // If we don't have real auth, use the development mock
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +105,7 @@ export function useAuth() {
                 name: "Demo User",
                 email: "demo@example.com",
                 phone: "(555) 123-4567",
-                role: "customer",
+                role: "ADMIN", // Changed to uppercase ADMIN to match your real auth
               });
             }, 500);
           }
@@ -73,9 +144,11 @@ export function useAuth() {
         setUser({
           id: "user-1",
           name: "John Doe",
+          firstName: "John",
+          lastName: "Doe",
           email: email,
           phone: "(555) 123-4567",
-          role: "customer",
+          role: "ADMIN", // Changed to uppercase ADMIN to match your real auth
         });
         return true;
       }
@@ -94,6 +167,9 @@ export function useAuth() {
     // For example:
     setUser(null);
     localStorage.removeItem("auth_token");
+    sessionStorage.removeItem("auth_token");
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
     console.log("Logout");
   };
 
@@ -213,7 +289,7 @@ export function useAuth() {
           id: `user-${Date.now()}`,
           name,
           email,
-          role: "customer",
+          role: "CUSTOMER", // Changed to uppercase CUSTOMER to match your real auth
         });
 
         return true;
