@@ -91,6 +91,77 @@ export const useCheckout = () => {
     });
   };
 
+  const validatePayment = async (paymentIntentId, orderIdParam = null) => {
+    // Check if user is authenticated
+    const currentToken = localStorage.getItem("token");
+    if (!currentToken) {
+      setError("Authentication required. Please log in to continue.");
+      return { success: false, error: "Authentication required" };
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    // Use orderIdParam if provided, otherwise fall back to the one in state
+    const paymentOrderId = orderIdParam || orderId;
+
+    console.log("Validating payment status");
+    console.log("Parameters:", {
+      paymentIntentId,
+      orderId: paymentOrderId,
+    });
+
+    try {
+      const api = getApi();
+      const response = await api.post("/checkout/validate-payment", {
+        paymentIntentId,
+        orderId: paymentOrderId,
+      });
+
+      console.log("Payment validation response:", response.data);
+
+      if (response.data.status === "success") {
+        return {
+          success: true,
+          status: response.data.data?.status || "valid",
+          paymentDetails: response.data.data,
+        };
+      } else {
+        setError(response.data.message || "Failed to validate payment");
+        return {
+          success: false,
+          error: response.data.message,
+          status: "invalid",
+        };
+      }
+    } catch (err) {
+      console.error("Exception in validatePayment:", err);
+
+      // Handle specific error cases
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          setError("Your session has expired. Please log in again.");
+          return {
+            success: false,
+            error: "Authentication required",
+            status: "unauthorized",
+          };
+        }
+
+        const errorMessage = err.response?.data?.message || err.message;
+        setError(errorMessage);
+        return { success: false, error: errorMessage, status: "error" };
+      }
+
+      const errorMessage =
+        err instanceof Error ? err.message : "An error occurred";
+      setError(errorMessage);
+      return { success: false, error: errorMessage, status: "error" };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const createCheckoutSession = async (addressData: any) => {
     // Check if user is authenticated
     const currentToken = localStorage.getItem("token");
@@ -203,7 +274,8 @@ export const useCheckout = () => {
   const confirmPayment = async (
     paymentIntentId: string,
     orderIdParam?: string,
-    testMode: boolean = true // Default to true for testing
+    testMode: boolean = true,
+    skipValidation: boolean = false // Add this parameter
   ) => {
     // Check if user is authenticated
     const currentToken = localStorage.getItem("token");
@@ -218,14 +290,30 @@ export const useCheckout = () => {
     // Use orderIdParam if provided, otherwise fall back to the one in state
     const paymentOrderId = orderIdParam || orderId;
 
-    console.log("Exactly replicating successful Postman request");
+    console.log("Processing payment confirmation");
     console.log("Parameters:", {
       paymentIntentId,
       orderId: paymentOrderId,
       testMode,
+      skipValidation,
     });
 
     try {
+      // If skipValidation is false, validate the payment first
+      if (!skipValidation) {
+        const validationResult = await validatePayment(
+          paymentIntentId,
+          paymentOrderId
+        );
+
+        if (!validationResult.success) {
+          console.error("Payment validation failed:", validationResult.error);
+          return validationResult;
+        }
+
+        console.log("Payment validated successfully:", validationResult);
+      }
+
       // Use fetch API directly to match exactly what Postman is doing
       const response = await fetch(
         `${
@@ -277,9 +365,6 @@ export const useCheckout = () => {
 
         // Set a flag to clear cart after redirection completes
         sessionStorage.setItem("clearCartAfterPayment", "true");
-
-        // Don't clear cart here to prevent redirect issues
-        // clearCart(); - MOVED TO CONFIRMATION PAGE
 
         return { success: true };
       } else {
