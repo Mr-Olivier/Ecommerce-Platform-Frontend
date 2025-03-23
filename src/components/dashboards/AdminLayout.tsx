@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useLocation, Outlet } from "react-router-dom";
+import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -23,7 +23,9 @@ const AdminLayout = () => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const profileRef = useRef<HTMLDivElement>(null);
 
   // Close profile dropdown when clicking outside
@@ -45,6 +47,49 @@ const AdminLayout = () => {
   useEffect(() => {
     setMobileSidebarOpen(false);
   }, [location.pathname]);
+
+  // Handle logout functionality
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+
+      // Get auth token from localStorage
+      const token = localStorage.getItem("token");
+
+      // Call logout API
+      const response = await fetch("http://localhost:4000/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Logout successful:", data);
+
+        // Clear authentication data from localStorage
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        // Dispatch auth state change event
+        window.dispatchEvent(new Event("auth-state-changed"));
+
+        // Redirect to login page
+        navigate("/login");
+      } else {
+        console.error("Logout failed:", data);
+        alert("Logout failed: " + (data.message || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("An error occurred during logout. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -164,16 +209,21 @@ const AdminLayout = () => {
               )}
             </Link>
 
-            {/* Logout button - this was already in your code but I'm showing it for context */}
+            {/* Logout button with API integration */}
             <button
-              onClick={() => {
-                /* Add logout logic */
-              }}
-              className="w-full mt-1 flex items-center px-3 py-3 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-red-600"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="w-full mt-1 flex items-center px-3 py-3 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <LogOut className="h-5 w-5 text-gray-400" />
+              {isLoggingOut ? (
+                <div className="h-5 w-5 text-gray-400 animate-spin rounded-full border-2 border-t-red-600 border-r-red-600 border-b-gray-300 border-l-gray-300" />
+              ) : (
+                <LogOut className="h-5 w-5 text-gray-400" />
+              )}
               {!isSidebarCollapsed && (
-                <span className="ml-3 text-sm font-medium">Logout</span>
+                <span className="ml-3 text-sm font-medium">
+                  {isLoggingOut ? "Logging out..." : "Logout"}
+                </span>
               )}
             </button>
           </div>
@@ -268,13 +318,16 @@ const AdminLayout = () => {
                     </Link>
                     <hr className="my-1" />
                     <button
-                      onClick={() => {
-                        /* Add logout logic */
-                      }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <LogOut className="h-4 w-4 mr-3" />
-                      Logout
+                      {isLoggingOut ? (
+                        <div className="h-4 w-4 mr-3 animate-spin rounded-full border-2 border-t-red-600 border-r-red-600 border-b-gray-300 border-l-gray-300" />
+                      ) : (
+                        <LogOut className="h-4 w-4 mr-3" />
+                      )}
+                      {isLoggingOut ? "Logging out..." : "Logout"}
                     </button>
                   </div>
                 )}
