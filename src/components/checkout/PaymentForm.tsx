@@ -77,6 +77,585 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
   const [isLoadingSavedCards, setIsLoadingSavedCards] = useState(true);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
+  // const [paymentState, setPaymentState] = useState("initial"); // 'initial', 'processing', 'confirmed', 'failed'
+  // const [paymentIntentId, setPaymentIntentId] = useState(null);
+
+  ////////////////////////////////////////////////
+
+  const [paymentState, setPaymentState] = useState("initial"); // 'initial', 'processing', 'confirmed', 'failed'
+  const [paymentIntentId, setPaymentIntentId] = useState(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const [paypalData, setPaypalData] = useState(null);
+  const [isCreatingPaypalSession, setIsCreatingPaypalSession] = useState(false);
+
+  // Add this useEffect near the top of your PaymentForm component
+  useEffect(() => {
+    // Check URL parameters for PayPal return
+    const urlParams = new URLSearchParams(window.location.search);
+    const paypalToken = urlParams.get("token");
+    const paypalPayerId = urlParams.get("PayerID");
+
+    if (paypalToken && paypalPayerId) {
+      console.log("Detected return from PayPal. Processing payment...");
+
+      // Get stored order information
+      const paypalOrderId = localStorage.getItem("paypalOrderId");
+      const orderId = localStorage.getItem("pendingOrderId");
+
+      if (paypalOrderId && orderId) {
+        // Show a loading message
+        setPaymentState("processing");
+        setIsProcessing(true);
+        setPaymentError(null);
+        setSuccessMessage("Processing your PayPal payment...");
+        setShowSuccessMessage(true);
+
+        // Call your existing confirmPaypalPayment function
+        confirmPaypalPayment()
+          .then(() => {
+            // Clean URL without reloading the page
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname
+            );
+          })
+          .catch((error) => {
+            console.error("Error confirming PayPal payment:", error);
+            // Clean URL even on error
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname
+            );
+          });
+      } else {
+        setPaymentError(
+          "PayPal payment information is missing. Please try again."
+        );
+        // Clean URL
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
+      }
+    }
+  }, []);
+
+  // Add this function to handle PayPal checkout
+  const handlePaypalCheckout = async () => {
+    try {
+      setIsProcessing(true);
+      setIsCreatingPaypalSession(true);
+      setPaymentError(null);
+
+      console.log("Creating PayPal checkout session...");
+
+      // Get token for authentication
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication required. Please log in to continue.");
+      }
+
+      // Create a PayPal checkout session
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:4000/api"
+        }/checkout/create-paypal-checkout`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          // Specify your return URL to be your checkout page
+          body: JSON.stringify({
+            returnUrl: window.location.origin + "/checkout",
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("PayPal session creation failed:", errorText);
+        throw new Error("Failed to create PayPal checkout session");
+      }
+
+      const data = await response.json();
+      console.log("PayPal session created:", data);
+
+      if (data.status === "success" && data.data) {
+        // Store necessary data in localStorage for when user returns
+        localStorage.setItem("paypalOrderId", data.data.paypalOrderId);
+        localStorage.setItem("pendingOrderId", data.data.orderId);
+
+        // IMPORTANT CHANGE: Directly redirect to PayPal instead of showing intermediate screen
+        console.log("Redirecting to PayPal:", data.data.approvalUrl);
+        window.location.href = data.data.approvalUrl;
+      } else {
+        throw new Error(
+          data.message || "Failed to create PayPal checkout session"
+        );
+      }
+    } catch (error) {
+      console.error("PayPal checkout error:", error);
+      setPaymentError(
+        error.message ||
+          "There was an error setting up PayPal checkout. Please try again."
+      );
+      setPaymentState("failed");
+    } finally {
+      setIsProcessing(false);
+      setIsCreatingPaypalSession(false);
+    }
+  };
+  // Add this function to handle redirecting to PayPal
+  const handlePayWithPaypal = () => {
+    if (paypalData && paypalData.approvalUrl) {
+      // Store orderId and paypalOrderId in localStorage for when the user returns
+      localStorage.setItem("paypalOrderId", paypalData.paypalOrderId);
+      localStorage.setItem("pendingOrderId", paypalData.orderId);
+
+      // Redirect to PayPal
+      window.location.href = paypalData.approvalUrl;
+    } else {
+      setPaymentError(
+        "PayPal checkout information is missing. Please try again."
+      );
+    }
+  };
+
+  // Add this function to confirm PayPal payment (used when returning from PayPal)
+  const confirmPaypalPayment = async () => {
+    try {
+      setIsProcessing(true);
+      setPaymentError(null);
+
+      // Get stored data
+      const paypalOrderId = localStorage.getItem("paypalOrderId");
+      const orderId = localStorage.getItem("pendingOrderId");
+
+      if (!paypalOrderId || !orderId) {
+        throw new Error(
+          "PayPal payment information is missing. Please start over."
+        );
+      }
+
+      // Get token for authentication
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication required. Please log in to continue.");
+      }
+
+      console.log("Confirming PayPal payment...");
+      console.log("PayPal Order ID:", paypalOrderId);
+      console.log("Order ID:", orderId);
+
+      // Confirm the PayPal payment
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:4000/api"
+        }/checkout/confirm-paypal-payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            paypalOrderId,
+            orderId,
+            testMode: true, // Set to false for production
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("PayPal payment confirmation failed:", errorText);
+        throw new Error("Failed to confirm PayPal payment");
+      }
+
+      const data = await response.json();
+      console.log("PayPal payment confirmed:", data);
+
+      if (data.status === "success") {
+        // Show success message
+        setSuccessMessage("PayPal payment confirmed! Order has been placed.");
+        setShowSuccessMessage(true);
+
+        // Store order details for confirmation page
+        localStorage.setItem(
+          "completedOrder",
+          JSON.stringify({
+            id: orderId,
+            paymentId: paypalOrderId,
+            date: new Date().toISOString(),
+            amount: data.data?.order?.totalAmount || paypalData?.amount || "0",
+            paymentMethod: "PayPal",
+          })
+        );
+
+        // Clear PayPal session data
+        localStorage.removeItem("paypalOrderId");
+        localStorage.removeItem("pendingOrderId");
+
+        // Set flag to clear cart
+        sessionStorage.setItem("clearCartAfterPayment", "true");
+
+        // Redirect to confirmation page after short delay
+        setTimeout(() => {
+          navigate("/checkout/confirmation");
+        }, 1500);
+      } else {
+        throw new Error(data.message || "Failed to confirm PayPal payment");
+      }
+    } catch (error) {
+      console.error("PayPal confirmation error:", error);
+      setPaymentError(
+        error.message ||
+          "There was an error confirming your PayPal payment. Please try again."
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Add this to check for returning from PayPal
+  useEffect(() => {
+    // Check if returning from PayPal
+    const urlParams = new URLSearchParams(window.location.search);
+    const paypalToken = urlParams.get("token");
+    const paypalPayerId = urlParams.get("PayerID");
+
+    if (paypalToken && paypalPayerId) {
+      console.log("Detected return from PayPal. Processing payment...");
+      // User has returned from PayPal, need to confirm the payment
+      confirmPaypalPayment();
+
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  // Add this helper function to process payment only (not placing order)
+  const processPaymentOnly = async (clientSecretStr, orderIdStr) => {
+    try {
+      console.log("Processing payment only...");
+      console.log("Client secret:", clientSecretStr.substring(0, 10) + "...");
+
+      // For credit card payments
+      if (selectedPaymentMethod === "credit-card") {
+        if (stripe && elements) {
+          const cardElement = elements.getElement(CardElement);
+
+          if (cardElement) {
+            try {
+              // Process with Stripe
+              console.log("Processing with Stripe...");
+              const stripeResult = await stripe.confirmCardPayment(
+                clientSecretStr,
+                {
+                  payment_method: {
+                    card: cardElement,
+                    billing_details: {
+                      name: watch("nameOnCard"),
+                    },
+                  },
+                }
+              );
+
+              if (stripeResult.error) {
+                throw new Error(stripeResult.error.message || "Payment failed");
+              }
+
+              // Payment succeeded
+              console.log(
+                "Stripe payment succeeded:",
+                stripeResult.paymentIntent
+              );
+              setPaymentIntentId(stripeResult.paymentIntent.id);
+            } catch (error) {
+              throw error;
+            }
+          } else {
+            // Fallback for testing when CardElement is not available
+            console.log("CardElement not available, using test payment flow");
+            const mockPaymentId =
+              clientSecretStr.split("_secret_")[0] ||
+              "mock_payment_" + Date.now();
+            setPaymentIntentId(mockPaymentId);
+          }
+        } else {
+          // Fallback for when Stripe is not available
+          console.log("Stripe not available, using test payment flow");
+          const mockPaymentId =
+            clientSecretStr.split("_secret_")[0] ||
+            "mock_payment_" + Date.now();
+          setPaymentIntentId(mockPaymentId);
+        }
+      }
+      // For PayPal or other payment methods
+      else {
+        console.log("Processing with PayPal or other method...");
+        const mockPaymentId =
+          clientSecretStr.split("_secret_")[0] || "mock_payment_" + Date.now();
+        setPaymentIntentId(mockPaymentId);
+      }
+
+      // Set payment as confirmed
+      setPaymentState("confirmed");
+
+      // Show success message
+      setSuccessMessage("Payment processed successfully!");
+      setShowSuccessMessage(true);
+
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 3000);
+
+      return true;
+    } catch (error) {
+      console.error("Payment processing error:", error);
+      setPaymentError(
+        error.message ||
+          "There was an error processing your payment. Please try again."
+      );
+      setPaymentState("failed");
+      return false;
+    }
+  };
+
+  // Add this function to handle the Pay Now button
+  const handlePayNow = async () => {
+    // If PayPal is selected, use the PayPal flow
+    if (selectedPaymentMethod === "paypal") {
+      await handlePaypalCheckout();
+      return;
+    }
+
+    // Otherwise proceed with the existing credit card flow
+    setIsProcessing(true);
+    setPaymentError(null);
+    setPaymentState("processing");
+
+    setIsProcessing(true);
+    setPaymentError(null);
+    setPaymentState("processing");
+
+    console.log("==== PAYMENT PROCESSING STARTED ====");
+
+    // Get client secret from context or localStorage with more detailed logging
+    const paymentClientSecret =
+      clientSecret || localStorage.getItem("checkoutClientSecret");
+    const paymentOrderId = orderId || localStorage.getItem("checkoutOrderId");
+
+    console.log(
+      "💳 PaymentForm: Using client secret:",
+      paymentClientSecret
+        ? `exists (${paymentClientSecret.substring(0, 10)}...)`
+        : "MISSING"
+    );
+    console.log("📝 PaymentForm: Using order ID:", paymentOrderId || "MISSING");
+    console.log(
+      "🧾 PaymentForm: Address data:",
+      addressData ? "exists" : "missing"
+    );
+
+    // Check if client secret is missing
+    if (!paymentClientSecret) {
+      console.error("❌ PaymentForm: Missing client secret");
+
+      // Try to recreate checkout session if address data is available
+      if (addressData && typeof createCheckoutSession === "function") {
+        console.log("🔄 PaymentForm: Attempting to recreate checkout session");
+        try {
+          const result = await createCheckoutSession(addressData);
+          console.log("📦 Checkout session result:", result);
+
+          if (result.success && result.clientSecret) {
+            console.log(
+              "✅ PaymentForm: Successfully recreated checkout session"
+            );
+
+            // Directly store in localStorage to ensure availability
+            if (result.clientSecret) {
+              localStorage.setItem("checkoutClientSecret", result.clientSecret);
+            }
+
+            if (result.orderId) {
+              localStorage.setItem("checkoutOrderId", result.orderId);
+            }
+
+            // Wait a moment for state to update
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
+            // Get the new client secret
+            const newClientSecret =
+              result.clientSecret ||
+              localStorage.getItem("checkoutClientSecret");
+
+            if (newClientSecret) {
+              console.log(
+                "🔑 PaymentForm: Using new client secret:",
+                newClientSecret.substring(0, 10) + "..."
+              );
+
+              // Process payment only
+              await processPaymentOnly(newClientSecret, result.orderId);
+            } else {
+              throw new Error(
+                "Failed to retrieve client secret after session creation"
+              );
+            }
+          } else {
+            throw new Error("Session creation failed or missing client secret");
+          }
+        } catch (err) {
+          console.error(
+            "❌ PaymentForm: Error recreating checkout session:",
+            err
+          );
+          setPaymentError(err.message || "Failed to create checkout session");
+          setPaymentState("failed");
+        }
+      } else {
+        // Provide more detailed error message based on what's missing
+        let errorMessage = "Missing payment information. ";
+
+        if (!addressData) {
+          errorMessage += "No shipping address found. ";
+        }
+
+        if (typeof createCheckoutSession !== "function") {
+          errorMessage += "Payment system not properly initialized. ";
+        }
+
+        errorMessage += "Please try again or go back to the cart.";
+
+        setPaymentError(errorMessage);
+        setPaymentState("failed");
+      }
+    } else {
+      // Process payment with existing client secret
+      await processPaymentOnly(paymentClientSecret, paymentOrderId);
+    }
+
+    setIsProcessing(false);
+  };
+
+  // Add this function to handle the Place Order button
+  const handlePlaceOrder = async () => {
+    if (!paymentIntentId) {
+      setPaymentError("Payment must be completed before placing order");
+      return;
+    }
+
+    setIsProcessing(true);
+    setPaymentError(null);
+
+    try {
+      console.log("==== PLACING ORDER ====");
+      const paymentOrderId = orderId || localStorage.getItem("checkoutOrderId");
+
+      if (!paymentOrderId) {
+        throw new Error("Order information is missing. Please try again.");
+      }
+
+      console.log("Using payment ID:", paymentIntentId);
+      console.log("Using order ID:", paymentOrderId);
+      console.log(
+        "API URL:",
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:4000/api"
+        }/checkout/confirm-payment`
+      );
+
+      // Get token for authentication
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication required. Please log in to continue.");
+      }
+
+      // Make direct API call to confirm payment and place order
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:4000/api"
+        }/checkout/confirm-payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            paymentIntentId,
+            orderId: paymentOrderId,
+            testMode: true, // Enable test mode
+          }),
+        }
+      );
+
+      // Process the response
+      const text = await response.text();
+      console.log("Raw response:", text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Invalid response from server");
+      }
+
+      console.log("Parsed response:", data);
+
+      if (data.status === "success") {
+        console.log("Order placed successfully!");
+
+        // Show order success message
+        setSuccessMessage(
+          "Order placed successfully! Redirecting to confirmation page..."
+        );
+        setShowSuccessMessage(true);
+
+        // Store order details in localStorage for the confirmation page
+        localStorage.setItem(
+          "completedOrder",
+          JSON.stringify({
+            id: paymentOrderId,
+            paymentId: paymentIntentId,
+            date: new Date().toISOString(),
+            amount: data.data?.order?.totalAmount || "0",
+          })
+        );
+
+        // Set flag to clear cart after redirection completes
+        sessionStorage.setItem("clearCartAfterPayment", "true");
+
+        // Short delay before redirecting
+        setTimeout(() => {
+          navigate("/checkout/confirmation");
+        }, 1500);
+      } else {
+        throw new Error(data.message || "Failed to place order");
+      }
+    } catch (error) {
+      console.error("Order placement error:", error);
+      setPaymentError(
+        error.message ||
+          "There was an error placing your order. Please try again."
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  /////////////////////////////////////////////////////////////////
+
   // Add this after your useState declarations
   useEffect(() => {
     console.log("📋 PaymentForm: clientSecret from context:", clientSecret);
@@ -163,6 +742,166 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
 
     fetchSavedCards();
   }, [setValue]);
+
+  // Add this function to handle the "Pay Now" functionality
+  // const handlePayNow = async () => {
+  //   setIsProcessing(true);
+  //   setPaymentError(null);
+  //   setPaymentState("processing");
+
+  //   console.log("==== PAYMENT PROCESSING STARTED ====");
+
+  //   // Get client secret from context or localStorage with more detailed logging
+  //   const paymentClientSecret =
+  //     clientSecret || localStorage.getItem("checkoutClientSecret");
+  //   const paymentOrderId = orderId || localStorage.getItem("checkoutOrderId");
+
+  //   console.log(
+  //     "💳 PaymentForm: Using client secret:",
+  //     paymentClientSecret
+  //       ? `exists (${paymentClientSecret.substring(0, 10)}...)`
+  //       : "MISSING"
+  //   );
+  //   console.log("📝 PaymentForm: Using order ID:", paymentOrderId || "MISSING");
+
+  //   if (!paymentClientSecret) {
+  //     console.error("❌ PaymentForm: Missing client secret");
+  //     setPaymentError(
+  //       "Payment information is missing. Please try again or go back to the cart."
+  //     );
+  //     setIsProcessing(false);
+  //     setPaymentState("failed");
+  //     return;
+  //   }
+
+  //   try {
+  //     // Process payment based on selected payment method
+  //     if (selectedPaymentMethod === "paypal") {
+  //       // Simulate PayPal payment for testing
+  //       console.log("Processing PayPal payment...");
+  //       await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  //       // Generate test payment ID
+  //       const mockPaymentId = "mock_paypal_" + Date.now();
+  //       setPaymentIntentId(mockPaymentId);
+  //       setPaymentState("confirmed");
+  //     } else {
+  //       // Credit card payment
+  //       if (
+  //         selectedSavedCard &&
+  //         selectedSavedCard !== "new_card" &&
+  //         !showNewCardForm
+  //       ) {
+  //         // Using saved card
+  //         console.log(`Using saved card ${selectedSavedCard}`);
+  //         await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  //         // Generate test payment ID
+  //         const mockPaymentId = "mock_saved_card_" + Date.now();
+  //         setPaymentIntentId(mockPaymentId);
+  //         setPaymentState("confirmed");
+  //       } else {
+  //         // Using Stripe or fallback
+  //         if (stripe && elements && paymentClientSecret) {
+  //           const cardElement = elements.getElement(CardElement);
+
+  //           if (cardElement) {
+  //             try {
+  //               // Process with Stripe
+  //               console.log("Processing payment with Stripe...");
+  //               const stripeResult = await stripe.confirmCardPayment(
+  //                 paymentClientSecret,
+  //                 {
+  //                   payment_method: {
+  //                     card: cardElement,
+  //                     billing_details: {
+  //                       name: watch("nameOnCard"),
+  //                     },
+  //                   },
+  //                 }
+  //               );
+
+  //               if (stripeResult.error) {
+  //                 console.error("Stripe payment error:", stripeResult.error);
+  //                 setPaymentError(
+  //                   stripeResult.error.message || "Payment failed"
+  //                 );
+  //                 setPaymentState("failed");
+  //               } else if (stripeResult.paymentIntent) {
+  //                 console.log(
+  //                   "Stripe payment successful!",
+  //                   stripeResult.paymentIntent
+  //                 );
+  //                 setPaymentIntentId(stripeResult.paymentIntent.id);
+  //                 setPaymentState("confirmed");
+  //               }
+  //             } catch (stripeError) {
+  //               console.error("Stripe API error:", stripeError);
+  //               setPaymentError("Error processing payment with Stripe");
+  //               setPaymentState("failed");
+  //             }
+  //           } else {
+  //             // Fallback for testing
+  //             console.log("Using test payment flow");
+  //             const mockPaymentId = "mock_payment_" + Date.now();
+  //             setPaymentIntentId(mockPaymentId);
+  //             setPaymentState("confirmed");
+  //           }
+  //         } else {
+  //           // Simple fallback
+  //           console.log("Payment processor not available. Using fallback...");
+  //           const mockPaymentId = "mock_fallback_" + Date.now();
+  //           setPaymentIntentId(mockPaymentId);
+  //           setPaymentState("confirmed");
+  //         }
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Payment processing error:", error);
+  //     setPaymentError(
+  //       "There was an error processing your payment. Please try again."
+  //     );
+  //     setPaymentState("failed");
+  //   } finally {
+  //     setIsProcessing(false);
+  //   }
+  // };
+
+  // Add this function to handle the final "Place Order" step
+  // const handlePlaceOrder = async () => {
+  //   if (!paymentIntentId) {
+  //     setPaymentError("Payment must be completed before placing order");
+  //     return;
+  //   }
+
+  //   setIsProcessing(true);
+  //   setPaymentError(null);
+
+  //   try {
+  //     const paymentOrderId = orderId || localStorage.getItem("checkoutOrderId");
+
+  //     // Call the confirm payment API to finalize the order
+  //     const result = await confirmPayment(
+  //       paymentIntentId,
+  //       paymentOrderId,
+  //       true // Use test mode for now
+  //     );
+
+  //     if (result.success) {
+  //       // Redirect to order confirmation
+  //       navigate("/checkout/confirmation");
+  //     } else {
+  //       setPaymentError(result.error || "Failed to place order");
+  //     }
+  //   } catch (error) {
+  //     console.error("Order placement error:", error);
+  //     setPaymentError(
+  //       "There was an error placing your order. Please try again."
+  //     );
+  //   } finally {
+  //     setIsProcessing(false);
+  //   }
+  // };
 
   // Format credit card number with spaces
   const formatCreditCardNumber = (value: string) => {
@@ -290,151 +1029,154 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
   };
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    setIsProcessing(true);
-    setPaymentError(null);
+    // Determine what action to take based on the current payment state
+    if (paymentState === "initial") {
+      // If payment hasn't been processed yet, trigger the payment flow
+      await handlePayNow();
+    } else if (paymentState === "confirmed" && paymentIntentId) {
+      // If payment is confirmed, trigger the order placement
+      await handlePlaceOrder();
+    } else {
+      // Use the existing flow for backward compatibility or fallback
+      setIsProcessing(true);
+      setPaymentError(null);
 
-    console.log("==== PAYMENT SUBMISSION STARTED ====");
+      console.log("==== PAYMENT SUBMISSION STARTED ====");
 
-    // Get client secret from context or localStorage with more detailed logging
-    const paymentClientSecret =
-      clientSecret || localStorage.getItem("checkoutClientSecret");
-    const paymentOrderId = orderId || localStorage.getItem("checkoutOrderId");
+      // Get client secret from context or localStorage with more detailed logging
+      const paymentClientSecret =
+        clientSecret || localStorage.getItem("checkoutClientSecret");
+      const paymentOrderId = orderId || localStorage.getItem("checkoutOrderId");
 
-    console.log(
-      "💳 PaymentForm: Using client secret:",
-      paymentClientSecret
-        ? `exists (${paymentClientSecret.substring(0, 10)}...)`
-        : "MISSING"
-    );
-    console.log("📝 PaymentForm: Using order ID:", paymentOrderId || "MISSING");
-    console.log(
-      "🧾 PaymentForm: Address data:",
-      addressData ? "exists" : "missing"
-    );
+      console.log(
+        "💳 PaymentForm: Using client secret:",
+        paymentClientSecret
+          ? `exists (${paymentClientSecret.substring(0, 10)}...)`
+          : "MISSING"
+      );
+      console.log(
+        "📝 PaymentForm: Using order ID:",
+        paymentOrderId || "MISSING"
+      );
+      console.log(
+        "🧾 PaymentForm: Address data:",
+        addressData ? "exists" : "missing"
+      );
 
-    // Check if context functions exist
-    console.log(
-      "🔍 PaymentForm: createCheckoutSession function:",
-      typeof createCheckoutSession === "function" ? "exists" : "MISSING"
-    );
-    console.log(
-      "🔍 PaymentForm: confirmPayment function:",
-      typeof confirmPayment === "function" ? "exists" : "MISSING"
-    );
+      // Check if client secret is missing
+      if (!paymentClientSecret) {
+        console.error("❌ PaymentForm: Missing client secret");
 
-    if (!paymentClientSecret) {
-      console.error("❌ PaymentForm: Missing client secret");
-
-      // Try to recreate checkout session if address data is available
-      if (addressData && typeof createCheckoutSession === "function") {
-        console.log("🔄 PaymentForm: Attempting to recreate checkout session");
-        try {
-          // Log address data content
+        // Try to recreate checkout session if address data is available
+        if (addressData && typeof createCheckoutSession === "function") {
           console.log(
-            "📋 Address data being used:",
-            JSON.stringify(addressData).substring(0, 100) + "..."
+            "🔄 PaymentForm: Attempting to recreate checkout session"
           );
+          try {
+            const result = await createCheckoutSession(addressData);
+            console.log("📦 Checkout session result:", result);
 
-          const result = await createCheckoutSession(addressData);
-          console.log("📦 Checkout session result:", result);
-
-          if (result.success && result.clientSecret) {
-            console.log(
-              "✅ PaymentForm: Successfully recreated checkout session"
-            );
-
-            // Directly store in localStorage to ensure availability
-            if (result.clientSecret) {
-              localStorage.setItem("checkoutClientSecret", result.clientSecret);
-            }
-
-            if (result.orderId) {
-              localStorage.setItem("checkoutOrderId", result.orderId);
-            }
-
-            // Wait a moment for state to update
-            await new Promise((resolve) => setTimeout(resolve, 500));
-
-            // Get the new client secret
-            const newClientSecret =
-              result.clientSecret ||
-              localStorage.getItem("checkoutClientSecret");
-
-            if (newClientSecret) {
+            if (result.success && result.clientSecret) {
               console.log(
-                "🔑 PaymentForm: Using new client secret:",
-                newClientSecret.substring(0, 10) + "..."
+                "✅ PaymentForm: Successfully recreated checkout session"
               );
-              // Continue with payment using the new client secret and test mode enabled
-              await processPaymentWithSecret(
-                data,
-                newClientSecret,
-                result.orderId,
-                true // Enable test mode
-              );
-              return;
+
+              // Directly store in localStorage to ensure availability
+              if (result.clientSecret) {
+                localStorage.setItem(
+                  "checkoutClientSecret",
+                  result.clientSecret
+                );
+              }
+
+              if (result.orderId) {
+                localStorage.setItem("checkoutOrderId", result.orderId);
+              }
+
+              // Wait a moment for state to update
+              await new Promise((resolve) => setTimeout(resolve, 500));
+
+              // Get the new client secret
+              const newClientSecret =
+                result.clientSecret ||
+                localStorage.getItem("checkoutClientSecret");
+
+              if (newClientSecret) {
+                console.log(
+                  "🔑 PaymentForm: Using new client secret:",
+                  newClientSecret.substring(0, 10) + "..."
+                );
+                // Continue with payment using the new client secret and test mode enabled
+                await processPaymentWithSecret(
+                  data,
+                  newClientSecret,
+                  result.orderId,
+                  true // Enable test mode
+                );
+                return;
+              } else {
+                console.error(
+                  "❌ PaymentForm: Failed to retrieve new client secret after session creation"
+                );
+              }
             } else {
               console.error(
-                "❌ PaymentForm: Failed to retrieve new client secret after session creation"
+                "❌ PaymentForm: Session creation failed or missing client secret:",
+                result
               );
             }
-          } else {
+          } catch (err) {
             console.error(
-              "❌ PaymentForm: Session creation failed or missing client secret:",
-              result
+              "❌ PaymentForm: Error recreating checkout session:",
+              err
             );
           }
-        } catch (err) {
+        } else {
           console.error(
-            "❌ PaymentForm: Error recreating checkout session:",
-            err
+            "❌ PaymentForm: Cannot recreate session - missing address data or createCheckoutSession function"
           );
         }
-      } else {
-        console.error(
-          "❌ PaymentForm: Cannot recreate session - missing address data or createCheckoutSession function"
-        );
+
+        // Provide more detailed error message based on what's missing
+        let errorMessage = "Missing payment information. ";
+
+        if (!addressData) {
+          errorMessage += "No shipping address found. ";
+        }
+
+        if (typeof createCheckoutSession !== "function") {
+          errorMessage += "Payment system not properly initialized. ";
+        }
+
+        errorMessage += "Please try again or go back to the cart.";
+
+        setPaymentError(errorMessage);
+        setIsProcessing(false);
+
+        // Try manual recovery - Check if we can force set client secret from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlClientSecret = urlParams.get("payment_intent_client_secret");
+        if (urlClientSecret) {
+          console.log("🔍 Found client secret in URL, trying to use it");
+          await processPaymentWithSecret(
+            data,
+            urlClientSecret,
+            paymentOrderId,
+            true
+          );
+        }
+
+        return;
       }
 
-      // Provide more detailed error message based on what's missing
-      let errorMessage = "Missing payment information. ";
-
-      if (!addressData) {
-        errorMessage += "No shipping address found. ";
-      }
-
-      if (typeof createCheckoutSession !== "function") {
-        errorMessage += "Payment system not properly initialized. ";
-      }
-
-      errorMessage += "Please try again or go back to the cart.";
-
-      setPaymentError(errorMessage);
-      setIsProcessing(false);
-
-      // Try manual recovery - Check if we can force set client secret from URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlClientSecret = urlParams.get("payment_intent_client_secret");
-      if (urlClientSecret) {
-        console.log("🔍 Found client secret in URL, trying to use it");
-        await processPaymentWithSecret(
-          data,
-          urlClientSecret,
-          paymentOrderId,
-          true
-        );
-      }
-
-      return;
+      // If we have a valid client secret, proceed with payment with test mode enabled
+      await processPaymentWithSecret(
+        data,
+        paymentClientSecret,
+        paymentOrderId,
+        true
+      );
     }
-
-    // If we have a valid client secret, proceed with payment with test mode enabled
-    await processPaymentWithSecret(
-      data,
-      paymentClientSecret,
-      paymentOrderId,
-      true
-    );
   };
 
   // Helper function to process payment with a valid client secret
@@ -663,260 +1405,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
     }
   };
 
-  // Add this function to your component
-  const debugPayment = async () => {
-    try {
-      console.log("=== DEBUG PAYMENT START ===");
-
-      // Check context values
-      console.log(
-        "Client Secret from context:",
-        clientSecret ? `${clientSecret.substring(0, 10)}...` : "null"
-      );
-      console.log("Order ID from context:", orderId);
-
-      // Check localStorage values
-      const storedSecret = localStorage.getItem("checkoutClientSecret");
-      const storedOrderId = localStorage.getItem("checkoutOrderId");
-
-      console.log(
-        "Client Secret from localStorage:",
-        storedSecret ? `${storedSecret.substring(0, 10)}...` : "null"
-      );
-      console.log("Order ID from localStorage:", storedOrderId);
-
-      // Check for address data
-      const storedAddress = localStorage.getItem("checkoutAddressData");
-      const hasAddressData = !!(addressData || storedAddress);
-
-      console.log("Has address data:", hasAddressData);
-
-      // Check if Stripe is initialized
-      console.log("Stripe available:", !!stripe);
-      console.log("Elements available:", !!elements);
-
-      if (!clientSecret && !storedSecret) {
-        console.log("No client secret available. Cannot make payment request.");
-
-        if (hasAddressData) {
-          if (
-            confirm(
-              "No client secret found. Would you like to create a new checkout session?"
-            )
-          ) {
-            const addressToUse =
-              addressData || JSON.parse(storedAddress || "{}");
-            console.log(
-              "Creating new session with address data:",
-              addressToUse
-            );
-
-            try {
-              const result = await createCheckoutSession(addressToUse);
-              console.log("Session creation result:", result);
-
-              if (result.success && result.clientSecret) {
-                alert(
-                  "Successfully created a new checkout session! Please try the payment again."
-                );
-                window.location.reload();
-              } else {
-                alert(
-                  "Failed to create checkout session: " +
-                    (result.error || "Unknown error")
-                );
-              }
-            } catch (error) {
-              console.error("Error creating session:", error);
-              alert("Error creating checkout session: " + String(error));
-            }
-          }
-        } else {
-          alert(
-            "No address data or client secret found. Please go back to add your shipping address."
-          );
-        }
-      } else {
-        // We have a client secret, let's verify it
-        const effectiveSecret = clientSecret || storedSecret;
-
-        // Extract payment intent ID
-        if (effectiveSecret) {
-          const paymentIntentId = effectiveSecret.split("_secret_")[0];
-          console.log("Payment Intent ID:", paymentIntentId);
-
-          const options = [
-            "Check payment status",
-            "Reset checkout and create new session",
-            "Just clear checkout data",
-            "Cancel",
-          ];
-
-          const action = prompt(
-            "Choose an action:\n1. Check payment status\n2. Reset checkout and create new session\n3. Just clear checkout data\n4. Cancel",
-            "1"
-          );
-
-          switch (action) {
-            case "1":
-              // Check payment status
-              try {
-                const authToken = localStorage.getItem("authToken");
-                console.log("Checking payment status for:", paymentIntentId);
-
-                const response = await fetch(
-                  `${
-                    import.meta.env.VITE_API_URL || "http://localhost:4000/api"
-                  }/checkout/payment-status`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      ...(authToken
-                        ? { Authorization: `Bearer ${authToken}` }
-                        : {}),
-                    },
-                    body: JSON.stringify({
-                      paymentIntentId,
-                    }),
-                  }
-                );
-
-                console.log("Status check response:", response.status);
-                const data = await response.json();
-                console.log("Payment status data:", data);
-
-                alert(`Payment status: ${JSON.stringify(data, null, 2)}`);
-              } catch (error) {
-                console.error("Error checking payment status:", error);
-                alert("Error checking payment status: " + String(error));
-              }
-              break;
-
-            case "2":
-              // Reset and create new
-              if (confirm("This will reset your checkout session. Continue?")) {
-                localStorage.removeItem("checkoutClientSecret");
-                localStorage.removeItem("checkoutOrderId");
-
-                if (hasAddressData) {
-                  const addressToUse =
-                    addressData || JSON.parse(storedAddress || "{}");
-                  try {
-                    const result = await createCheckoutSession(addressToUse);
-
-                    if (result.success) {
-                      alert(
-                        "Successfully reset and created a new checkout session!"
-                      );
-                      window.location.reload();
-                    } else {
-                      alert(
-                        "Reset successful but failed to create new session: " +
-                          (result.error || "Unknown error")
-                      );
-                    }
-                  } catch (error) {
-                    alert(
-                      "Reset successful but error creating new session: " +
-                        String(error)
-                    );
-                  }
-                } else {
-                  alert(
-                    "Checkout data has been reset. Please restart from the shipping address step."
-                  );
-                  // Optionally navigate back to address step
-                  // navigate("/checkout/address");
-                }
-              }
-              break;
-
-            case "3":
-              // Just clear data
-              if (
-                confirm("This will clear your checkout session data. Continue?")
-              ) {
-                localStorage.removeItem("checkoutClientSecret");
-                localStorage.removeItem("checkoutOrderId");
-                alert(
-                  "Checkout data has been cleared. You may need to reload the page."
-                );
-                window.location.reload();
-              }
-              break;
-
-            default:
-              // Cancel
-              console.log("Debug action cancelled");
-          }
-        }
-      }
-
-      console.log("=== DEBUG PAYMENT END ===");
-    } catch (error) {
-      console.error("Debug error:", error);
-      alert("Error during debug: " + String(error));
-    }
-  };
-
-  // Add this function after your other functions in PaymentForm.tsx
-  const setTestAddressData = () => {
-    // Create a test address object
-    const testAddress = {
-      firstName: "John",
-      lastName: "Doe",
-      street: "123 Main St",
-      city: "New York",
-      state: "NY",
-      zipCode: "10001",
-      country: "United States",
-      email: "john.doe@example.com",
-      phone: "555-123-4567",
-    };
-
-    // Log what we're doing
-    console.log("Setting test address data:", testAddress);
-
-    // Store directly in localStorage for backup
-    localStorage.setItem("checkoutAddressData", JSON.stringify(testAddress));
-
-    // If there's a saveAddressData function in context, use it
-    if (typeof saveAddressData === "function") {
-      saveAddressData(testAddress);
-      console.log("Set test address data using saveAddressData function");
-    } else {
-      console.warn("saveAddressData function not available in context");
-    }
-
-    // Attempt to create a checkout session with this address
-    if (typeof createCheckoutSession === "function") {
-      console.log("Creating checkout session with test address data...");
-      createCheckoutSession(testAddress)
-        .then((result) => {
-          console.log("Checkout session creation result:", result);
-          if (result.success) {
-            alert(
-              "Successfully created checkout session with test address data!\nTry placing your order now."
-            );
-            // Optional: refresh the page to make sure all state is updated
-            // window.location.reload();
-          } else {
-            alert(
-              "Error creating checkout session: " +
-                (result.error || "Unknown error")
-            );
-          }
-        })
-        .catch((error) => {
-          console.error("Error creating checkout session:", error);
-          alert("Error creating checkout session: " + String(error));
-        });
-    } else {
-      console.warn("createCheckoutSession function not available in context");
-    }
-  };
-
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <div className="mb-6">
@@ -1052,7 +1540,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
             </span>
           )}
         </div>
-
         {/* Credit Card Fields */}
         {selectedPaymentMethod === "credit-card" && (
           <div className="space-y-4 border-t pt-4">
@@ -1456,21 +1943,21 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
             )}
           </div>
         )}
-
         {/* PayPal Fields */}
         {selectedPaymentMethod === "paypal" && (
           <div className="space-y-4 border-t pt-4">
             <p className="text-sm text-gray-600">
-              After clicking "Place Order", you will be redirected to PayPal to
-              complete your purchase securely.
+              With PayPal, you can pay securely using your PayPal account or
+              credit/debit card without sharing your financial information.
             </p>
             <div className="p-4 bg-blue-50 rounded-lg">
               <div className="flex items-center">
                 <FaPaypal className="text-blue-600 h-8 w-8 mr-2" />
                 <div>
-                  <h3 className="font-medium">PayPal</h3>
+                  <h3 className="font-medium">PayPal Checkout</h3>
                   <p className="text-xs text-gray-600">
-                    The safer, easier way to pay
+                    You'll be redirected to PayPal to complete your payment
+                    securely.
                   </p>
                 </div>
               </div>
@@ -1504,13 +1991,76 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
                 </span>
               )}
               <p className="mt-1 text-xs text-gray-500">
-                If you provide your PayPal email, we'll pre-fill it during the
-                PayPal checkout process.
+                Enter your PayPal email address if you'd like to pre-fill it on
+                the PayPal site.
               </p>
             </div>
           </div>
         )}
 
+        {/* Add this PayPal information section when PayPal is being created */}
+        {isCreatingPaypalSession && (
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center text-blue-700 mb-2">
+              <svg
+                className="animate-spin h-5 w-5 mr-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Creating PayPal checkout session...
+            </div>
+            <p className="text-sm text-blue-600">
+              Please wait while we set up your PayPal checkout.
+            </p>
+          </div>
+        )}
+
+        {/* Add this PayPal information section when PayPal session is ready */}
+        {paymentState === "paypal-ready" && paypalData && (
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center text-blue-700 mb-2">
+              <FaPaypal className="h-5 w-5 mr-2" />
+              <span className="font-medium">PayPal Checkout Information</span>
+            </div>
+            <p className="text-sm text-blue-600 mb-2">
+              Your PayPal checkout session is ready. Click "Pay with PayPal" to
+              complete your payment.
+            </p>
+            <div className="bg-white p-3 rounded-md text-sm">
+              <div className="flex justify-between mb-1">
+                <span className="text-gray-600">Order ID:</span>
+                <span className="font-mono">
+                  {paypalData.orderId.substring(0, 8)}...
+                </span>
+              </div>
+              <div className="flex justify-between mb-1">
+                <span className="text-gray-600">PayPal Order ID:</span>
+                <span className="font-mono">
+                  {paypalData.paypalOrderId.substring(0, 8)}...
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Amount:</span>
+                <span className="font-medium">${paypalData.amount}</span>
+              </div>
+            </div>
+          </div>
+        )}
         {/* ID Verification for high-value purchases */}
         <div className="mt-6">
           <div className="flex items-center justify-between">
@@ -1570,23 +2120,83 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
           )}
         </div>
 
-        <div className="border-t pt-6 flex justify-between">
-          <button
-            type="button"
-            onClick={prevStep}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Back to Address
-          </button>
-          <button
-            type="submit"
-            disabled={isProcessing || isLoading}
-            className={`inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-              isProcessing || isLoading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
-          >
-            {isProcessing || isLoading ? (
-              <>
+        {/* Buttons  */}
+
+        {/* Replace your form's button section with this */}
+        <div className="border-t pt-6">
+          {/* Success message that disappears after 3 seconds */}
+          {showSuccessMessage && (
+            <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              {successMessage}
+            </div>
+          )}
+
+          <div className="flex justify-between">
+            <button
+              type="button"
+              onClick={prevStep}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Back to Address
+            </button>
+
+            {/* Pay Now Button - Only shown in initial state */}
+            {paymentState === "initial" && (
+              <button
+                type="button"
+                onClick={handlePayNow}
+                disabled={isProcessing || isLoading}
+                className={`inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                  isProcessing || isLoading
+                    ? "opacity-70 cursor-not-allowed"
+                    : ""
+                }`}
+              >
+                {isProcessing ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  <>Pay Now</>
+                )}
+              </button>
+            )}
+
+            {/* Processing indicator - Shown during payment processing */}
+            {paymentState === "processing" && (
+              <div className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-500">
                 <svg
                   className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                   xmlns="http://www.w3.org/2000/svg"
@@ -1607,39 +2217,149 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Processing...
-              </>
-            ) : (
-              <>Place Order</>
+                Processing Payment...
+              </div>
             )}
-          </button>
-        </div>
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={debugPayment}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 flex items-center"
-          >
-            <span role="img" aria-label="Debug" className="mr-2">
-              🛠️
-            </span>
-            Debug Payment
-          </button>
-          <button
-            type="button"
-            onClick={setTestAddressData}
-            className="mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center"
-          >
-            <span role="img" aria-label="Address" className="mr-2">
-              📋
-            </span>
-            Set Test Address Data
-          </button>
-          <p className="text-xs text-gray-500 mt-1">
-            Use this if you're experiencing payment issues
-          </p>
-        </div>
 
+            {/* PayPal Ready State - Shows the button to redirect to PayPal */}
+            {paymentState === "paypal-ready" && (
+              <button
+                type="button"
+                onClick={handlePayWithPaypal}
+                disabled={isProcessing}
+                className={`inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                  isProcessing ? "opacity-70 cursor-not-allowed" : ""
+                }`}
+              >
+                {isProcessing ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <FaPaypal className="mr-2 h-5 w-5" />
+                    Pay with PayPal
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Place Order Button - Only shown after payment is confirmed */}
+            {paymentState === "confirmed" && (
+              <button
+                type="button"
+                onClick={handlePlaceOrder}
+                disabled={isProcessing}
+                className={`inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                  isProcessing ? "opacity-70 cursor-not-allowed" : ""
+                }`}
+              >
+                {isProcessing ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  <>Place Order</>
+                )}
+              </button>
+            )}
+
+            {/* Try Again Button - Shown on payment failure */}
+            {paymentState === "failed" && (
+              <button
+                type="button"
+                onClick={handlePayNow}
+                disabled={isProcessing}
+                className={`inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                  isProcessing ? "opacity-70 cursor-not-allowed" : ""
+                }`}
+              >
+                Try Again
+              </button>
+            )}
+          </div>
+
+          {/* Payment status indicators */}
+          {paymentState === "confirmed" && !showSuccessMessage && (
+            <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Payment successful! Please click "Place Order" to complete your
+              purchase.
+            </div>
+          )}
+
+          {paymentState === "failed" && (
+            <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md">
+              <div className="flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Payment failed.
+              </div>
+              {paymentError && <p className="mt-2 text-sm">{paymentError}</p>}
+            </div>
+          )}
+        </div>
         <div className="mt-4 text-center">
           <p className="text-xs text-gray-500">
             By placing your order, you agree to our{" "}
