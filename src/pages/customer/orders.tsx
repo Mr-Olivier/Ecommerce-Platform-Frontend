@@ -267,7 +267,9 @@ const OrdersPage: React.FC = () => {
                           Order #{order.id.substring(0, 8)}
                         </p>
                         <p className="flex-shrink-0 text-sm text-gray-500">
-                          {new Date(order.createdAt).toLocaleDateString()}
+                          {order.createdAt
+                            ? new Date(order.createdAt).toLocaleDateString()
+                            : "N/A"}
                         </p>
                         <span
                           className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -326,7 +328,11 @@ const OrdersPage: React.FC = () => {
                       <div className="sm:col-span-1">
                         <div className="text-sm text-gray-500">Amount Due</div>
                         <div className="mt-1 text-lg font-bold text-gray-900">
-                          {formatCurrency(order.totalAmount)}
+                          {formatCurrency(
+                            order.totalAmount
+                              ? parseFloat(order.totalAmount)
+                              : order.total
+                          )}
                         </div>
                       </div>
                     </div>
