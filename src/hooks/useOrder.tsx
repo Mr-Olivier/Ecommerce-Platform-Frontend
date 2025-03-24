@@ -15,11 +15,19 @@ interface OrderItem {
   };
 }
 
+// Note: This should match the enum in your backend
+type OrderStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED";
+
 interface ApiOrder {
   id: string;
   userId: string;
   totalAmount: string;
-  status: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  status: OrderStatus;
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
@@ -212,7 +220,7 @@ export function useOrder() {
         if (orders) {
           const updatedOrders = orders.map((order) =>
             order.id === orderId
-              ? { ...order, status: "CANCELLED" as const }
+              ? { ...order, status: "CANCELLED" as OrderStatus }
               : order
           );
           setOrders(updatedOrders);
@@ -262,6 +270,11 @@ export function useOrder() {
           throw new Error("Order not found");
         }
 
+        // Make sure createdAt exists and is a string before using it
+        const createdAtDate = order.createdAt
+          ? new Date(order.createdAt)
+          : new Date();
+
         // This is a placeholder - in a real app, you would have a tracking API
         // Generate tracking data based on order status
         const trackingData = {
@@ -270,22 +283,23 @@ export function useOrder() {
           carrier: "Your Shipping Provider",
           events: [
             {
-              date: order.createdAt,
+              date: order.createdAt || order.date,
               status: "Order Placed",
               location: "Online",
             },
           ],
           estimatedDelivery: new Date(
-            new Date(order.createdAt).getTime() + 5 * 24 * 60 * 60 * 1000
+            createdAtDate.getTime() + 5 * 24 * 60 * 60 * 1000
           ).toISOString(),
-          deliveredOn: order.status === "DELIVERED" ? order.updatedAt : null,
+          deliveredOn:
+            order.status === "DELIVERED" ? order.updatedAt || null : null,
         };
 
         // Add more events based on status
         if (order.status !== "PENDING") {
           trackingData.events.push({
             date: new Date(
-              new Date(order.createdAt).getTime() + 1 * 24 * 60 * 60 * 1000
+              createdAtDate.getTime() + 1 * 24 * 60 * 60 * 1000
             ).toISOString(),
             status: "Processing",
             location: "Warehouse",
@@ -295,7 +309,7 @@ export function useOrder() {
         if (order.status === "SHIPPED" || order.status === "DELIVERED") {
           trackingData.events.push({
             date: new Date(
-              new Date(order.createdAt).getTime() + 2 * 24 * 60 * 60 * 1000
+              createdAtDate.getTime() + 2 * 24 * 60 * 60 * 1000
             ).toISOString(),
             status: "Shipped",
             location: "Distribution Center",
@@ -305,14 +319,14 @@ export function useOrder() {
         if (order.status === "DELIVERED") {
           trackingData.events.push({
             date: new Date(
-              new Date(order.createdAt).getTime() + 4 * 24 * 60 * 60 * 1000
+              createdAtDate.getTime() + 4 * 24 * 60 * 60 * 1000
             ).toISOString(),
             status: "Out for Delivery",
             location: "Local Carrier Facility",
           });
 
           trackingData.events.push({
-            date: order.updatedAt,
+            date: order.updatedAt || order.date,
             status: "Delivered",
             location: "Delivery Address",
           });
