@@ -92,7 +92,7 @@ const AdminProductManagement: React.FC = () => {
         stock:
           typeof selectedProduct.stock === "number"
             ? selectedProduct.stock
-            : parseInt(selectedProduct.stock?.toString() || "0"),
+            : parseInt(String(selectedProduct.stock) || "0"),
         status: selectedProduct.status || "ACTIVE",
         description: selectedProduct.description || "",
       });
