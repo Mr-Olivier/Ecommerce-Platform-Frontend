@@ -38,6 +38,13 @@ interface SavedCard {
   isDefault: boolean;
 }
 
+interface PaypalData {
+  orderId: string;
+  paypalOrderId: string;
+  approvalUrl: string;
+  amount: string;
+}
+
 interface FormData {
   paymentMethod: string;
   selectedSavedCard: string;
@@ -83,11 +90,11 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
   ////////////////////////////////////////////////
 
   const [paymentState, setPaymentState] = useState("initial"); // 'initial', 'processing', 'confirmed', 'failed'
-  const [paymentIntentId, setPaymentIntentId] = useState(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const [paypalData, setPaypalData] = useState(null);
+  const [paypalData, setPaypalData] = useState<PaypalData | null>(null);
   const [isCreatingPaypalSession, setIsCreatingPaypalSession] = useState(false);
 
   // Add this useEffect near the top of your PaymentForm component
@@ -203,8 +210,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
     } catch (error) {
       console.error("PayPal checkout error:", error);
       setPaymentError(
-        error.message ||
-          "There was an error setting up PayPal checkout. Please try again."
+        error instanceof Error
+          ? error.message
+          : "There was an error setting up PayPal checkout. Please try again."
       );
       setPaymentState("failed");
     } finally {
@@ -316,8 +324,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
     } catch (error) {
       console.error("PayPal confirmation error:", error);
       setPaymentError(
-        error.message ||
-          "There was an error confirming your PayPal payment. Please try again."
+        error instanceof Error
+          ? error.message
+          : "There was an error confirming your PayPal payment. Please try again."
       );
     } finally {
       setIsProcessing(false);
@@ -342,7 +351,10 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
   }, []);
 
   // Add this helper function to process payment only (not placing order)
-  const processPaymentOnly = async (clientSecretStr, orderIdStr) => {
+  const processPaymentOnly = async (
+    clientSecretStr: string,
+    orderIdStr?: string
+  ) => {
     try {
       console.log("Processing payment only...");
       console.log("Client secret:", clientSecretStr.substring(0, 10) + "...");
@@ -353,6 +365,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
           const cardElement = elements.getElement(CardElement);
 
           if (cardElement) {
+            // eslint-disable-next-line no-useless-catch
             try {
               // Process with Stripe
               console.log("Processing with Stripe...");
@@ -422,8 +435,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
     } catch (error) {
       console.error("Payment processing error:", error);
       setPaymentError(
-        error.message ||
-          "There was an error processing your payment. Please try again."
+        error instanceof Error
+          ? error.message
+          : "There was an error processing your payment. Please try again."
       );
       setPaymentState("failed");
       return false;
@@ -520,7 +534,11 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
             "❌ PaymentForm: Error recreating checkout session:",
             err
           );
-          setPaymentError(err.message || "Failed to create checkout session");
+          setPaymentError(
+            err instanceof Error
+              ? err.message
+              : "Failed to create checkout session"
+          );
           setPaymentState("failed");
         }
       } else {
@@ -542,7 +560,10 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
       }
     } else {
       // Process payment with existing client secret
-      await processPaymentOnly(paymentClientSecret, paymentOrderId);
+      await processPaymentOnly(
+        paymentClientSecret,
+        paymentOrderId || undefined
+      );
     }
 
     setIsProcessing(false);
@@ -646,8 +667,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
     } catch (error) {
       console.error("Order placement error:", error);
       setPaymentError(
-        error.message ||
-          "There was an error placing your order. Please try again."
+        error instanceof Error
+          ? error.message
+          : "There was an error placing your order. Please try again."
       );
     } finally {
       setIsProcessing(false);
@@ -1107,12 +1129,12 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
                   newClientSecret.substring(0, 10) + "..."
                 );
                 // Continue with payment using the new client secret and test mode enabled
-                await processPaymentWithSecret(
+                await processPaymentWithSecret({
                   data,
-                  newClientSecret,
-                  result.orderId,
-                  true // Enable test mode
-                );
+                  paymentClientSecret: newClientSecret,
+                  paymentOrderId: result.orderId,
+                  testMode: true, // Enable test mode
+                });
                 return;
               } else {
                 console.error(
@@ -1158,34 +1180,33 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
         const urlClientSecret = urlParams.get("payment_intent_client_secret");
         if (urlClientSecret) {
           console.log("🔍 Found client secret in URL, trying to use it");
-          await processPaymentWithSecret(
+          await processPaymentWithSecret({
             data,
-            urlClientSecret,
-            paymentOrderId,
-            true
-          );
+            paymentClientSecret: paymentClientSecret || "", // Convert null to empty string
+            paymentOrderId: paymentOrderId || undefined,
+            testMode: true,
+          });
         }
 
         return;
       }
-
-      // If we have a valid client secret, proceed with payment with test mode enabled
-      await processPaymentWithSecret(
-        data,
-        paymentClientSecret,
-        paymentOrderId,
-        true
-      );
     }
   };
 
+  interface ProcessPaymentWithSecretParams {
+    data: FormData;
+    paymentClientSecret: string;
+    paymentOrderId?: string;
+    testMode?: boolean;
+  }
+
   // Helper function to process payment with a valid client secret
-  const processPaymentWithSecret = async (
+  const processPaymentWithSecret = async ({
     data,
     paymentClientSecret,
     paymentOrderId,
-    testMode = true // Enable test mode by default
-  ) => {
+    testMode = true,
+  }: ProcessPaymentWithSecretParams) => {
     try {
       console.log("Processing payment with test mode:", testMode);
       console.log(
