@@ -4,10 +4,19 @@ import DashboardLayout from "../../components/customer-dashboard/DashboardLayout
 import { useWishlist } from "../../hooks/useWishlist";
 import { Link } from "react-router-dom";
 
+// Define the WishlistItem interface to match your data structure
+interface WishlistItem {
+  id: string;
+  name: string;
+  price: number;
+  image?: string | null;
+  inStock: boolean;
+}
+
 const WishlistPage: React.FC = () => {
-  const { wishlist, loading, fetchWishlist, removeFromWishlist, moveToCart } =
+  const { loading, fetchWishlist, removeFromWishlist, moveToCart } =
     useWishlist();
-  const [items, setItems] = React.useState([]);
+  const [items, setItems] = React.useState<WishlistItem[]>([]);
 
   React.useEffect(() => {
     const loadWishlist = async () => {
