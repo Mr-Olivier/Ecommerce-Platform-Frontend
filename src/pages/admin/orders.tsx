@@ -165,91 +165,91 @@ const OrderManagement: React.FC = () => {
   // };
 
   // Function to cancel an order
-  const handleCancelOrder = async (orderId: string) => {
-    try {
-      const token =
-        localStorage.getItem("auth_token") ||
-        sessionStorage.getItem("auth_token");
+  // const handleCancelOrder = async (orderId: string) => {
+  //   try {
+  //     const token =
+  //       localStorage.getItem("auth_token") ||
+  //       sessionStorage.getItem("auth_token");
 
-      if (!token) {
-        setError("Authentication required to cancel order");
-        return;
-      }
+  //     if (!token) {
+  //       setError("Authentication required to cancel order");
+  //       return;
+  //     }
 
-      // Log request details for debugging
-      console.log("Attempting to cancel order:", orderId);
-      console.log(
-        "Using token:",
-        token ? `${token.substring(0, 10)}...` : "missing"
-      );
+  //     // Log request details for debugging
+  //     console.log("Attempting to cancel order:", orderId);
+  //     console.log(
+  //       "Using token:",
+  //       token ? `${token.substring(0, 10)}...` : "missing"
+  //     );
 
-      // Make the cancel request with proper authentication
-      const response = await axios.patch(
-        `http://localhost:4000/api/orders/${orderId}/cancel`,
-        {}, // Empty body
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+  //     // Make the cancel request with proper authentication
+  //     const response = await axios.patch(
+  //       `http://localhost:4000/api/orders/${orderId}/cancel`,
+  //       {}, // Empty body
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
 
-      console.log(
-        "Cancel order response:",
-        response.status,
-        response.statusText
-      );
+  //     console.log(
+  //       "Cancel order response:",
+  //       response.status,
+  //       response.statusText
+  //     );
 
-      // Update UI after successful cancel
-      const updatedOrders = orders.map((order) =>
-        order.id === orderId ? { ...order, status: "CANCELLED" } : order
-      );
-      setOrders(updatedOrders);
+  //     // Update UI after successful cancel
+  //     const updatedOrders = orders.map((order) =>
+  //       order.id === orderId ? { ...order, status: "CANCELLED" } : order
+  //     );
+  //     setOrders(updatedOrders);
 
-      if (selectedOrder && selectedOrder.id === orderId) {
-        setSelectedOrder({ ...selectedOrder, status: "CANCELLED" });
-      }
+  //     if (selectedOrder && selectedOrder.id === orderId) {
+  //       setSelectedOrder({ ...selectedOrder, status: "CANCELLED" });
+  //     }
 
-      // Show success message
-      setError(null); // Clear any previous errors
-    } catch (err: any) {
-      console.error("Error cancelling order:", err);
+  //     // Show success message
+  //     setError(null); // Clear any previous errors
+  //   } catch (err: any) {
+  //     console.error("Error cancelling order:", err);
 
-      // Detailed error logging
-      if (err.response) {
-        console.error("Response status:", err.response.status);
-        console.error("Response data:", err.response.data);
+  //     // Detailed error logging
+  //     if (err.response) {
+  //       console.error("Response status:", err.response.status);
+  //       console.error("Response data:", err.response.data);
 
-        // Handle specific error cases
-        if (err.response.status === 403) {
-          setError(
-            "You don't have permission to cancel this order. Only admins or the order owner can cancel orders."
-          );
-        } else if (err.response.status === 401) {
-          setError(
-            "Your session has expired. Please log in again to cancel the order."
-          );
-          // Optionally redirect to login
-          // navigate('/login', { state: { from: '/admin/orders' } });
-        } else {
-          setError(
-            `Failed to cancel order: ${
-              err.response?.data?.message || "Access denied"
-            }. ${err.response?.data?.error || ""}`
-          );
-        }
-      } else if (err.request) {
-        // Request was made but no response received
-        setError(
-          "No response received from server. Please check your connection and try again."
-        );
-      } else {
-        // Error setting up the request
-        setError(`Failed to cancel order: ${err.message}`);
-      }
-    }
-  };
+  //       // Handle specific error cases
+  //       if (err.response.status === 403) {
+  //         setError(
+  //           "You don't have permission to cancel this order. Only admins or the order owner can cancel orders."
+  //         );
+  //       } else if (err.response.status === 401) {
+  //         setError(
+  //           "Your session has expired. Please log in again to cancel the order."
+  //         );
+  //         // Optionally redirect to login
+  //         // navigate('/login', { state: { from: '/admin/orders' } });
+  //       } else {
+  //         setError(
+  //           `Failed to cancel order: ${
+  //             err.response?.data?.message || "Access denied"
+  //           }. ${err.response?.data?.error || ""}`
+  //         );
+  //       }
+  //     } else if (err.request) {
+  //       // Request was made but no response received
+  //       setError(
+  //         "No response received from server. Please check your connection and try again."
+  //       );
+  //     } else {
+  //       // Error setting up the request
+  //       setError(`Failed to cancel order: ${err.message}`);
+  //     }
+  //   }
+  // };
   // Add this function inside your OrderManagement component
   // It will help ensure orders have proper status based on creation date
 
@@ -266,7 +266,7 @@ const OrderManagement: React.FC = () => {
       // If the order was just created (less than 1 day old), make sure it's PENDING
       // unless it's already CANCELLED
       if (daysSinceCreated < 1 && order.status !== "CANCELLED") {
-        return { ...order, status: "PENDING" };
+        return { ...order, status: "PENDING" as Order["status"] };
       }
 
       // Don't override CANCELLED status
@@ -284,15 +284,15 @@ const OrderManagement: React.FC = () => {
         daysSinceCreated < 2 &&
         order.status === "PENDING"
       ) {
-        return { ...order, status: "PROCESSING" };
+        return { ...order, status: "PROCESSING" as Order["status"] };
       } else if (
         daysSinceCreated >= 2 &&
         daysSinceCreated < 5 &&
         order.status === "PROCESSING"
       ) {
-        return { ...order, status: "SHIPPED" };
+        return { ...order, status: "SHIPPED" as Order["status"] };
       } else if (daysSinceCreated >= 5 && order.status === "SHIPPED") {
-        return { ...order, status: "DELIVERED" };
+        return { ...order, status: "DELIVERED" as Order["status"] };
       }
 
       return order;
@@ -435,7 +435,9 @@ const OrderManagement: React.FC = () => {
 
       // Update locally after successful backend update
       const updatedOrders = orders.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
+        order.id === orderId
+          ? { ...order, status: newStatus as Order["status"] }
+          : order
       );
       setOrders(updatedOrders);
 
@@ -477,7 +479,9 @@ const OrderManagement: React.FC = () => {
 
       // Update UI after successful cancellation
       const updatedOrders = orders.map((order) =>
-        order.id === orderId ? { ...order, status: "CANCELLED" } : order
+        order.id === orderId
+          ? { ...order, status: "CANCELLED" as Order["status"] }
+          : order
       );
       setOrders(updatedOrders);
 
