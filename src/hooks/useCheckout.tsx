@@ -14,10 +14,11 @@ interface CheckoutSessionResponse {
   message?: string;
 }
 
-interface PaymentConfirmationResponse {
-  status: string;
-  message: string;
-}
+// Remove or use this interface if needed
+// interface PaymentConfirmationResponse {
+//   status: string;
+//   message: string;
+// }
 
 interface OrderResponse {
   status: string;
@@ -47,25 +48,26 @@ interface OrderResponse {
 }
 
 export const useCheckout = () => {
-  const { cart, clearCart } = useCart();
+  const { cart } = useCart(); // Remove clearCart if not used
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
+  // Remove token state if not needed
+  // const [token, setToken] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Get token from localStorage on component mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    setToken(storedToken);
+    // const storedToken = localStorage.getItem("token");
+    // setToken(storedToken);
 
     // Listen for auth state changes (when user logs in or out)
     const handleAuthChange = () => {
-      const updatedToken = localStorage.getItem("token");
-      setToken(updatedToken);
+      // const updatedToken = localStorage.getItem("token");
+      // setToken(updatedToken);
     };
 
     window.addEventListener("auth-state-changed", handleAuthChange);
@@ -91,7 +93,10 @@ export const useCheckout = () => {
     });
   };
 
-  const validatePayment = async (paymentIntentId, orderIdParam = null) => {
+  const validatePayment = async (
+    paymentIntentId: string,
+    orderIdParam: string | null = null
+  ) => {
     // Check if user is authenticated
     const currentToken = localStorage.getItem("token");
     if (!currentToken) {
@@ -275,7 +280,7 @@ export const useCheckout = () => {
     paymentIntentId: string,
     orderIdParam?: string,
     testMode: boolean = true,
-    skipValidation: boolean = false // Add this parameter
+    skipValidation: boolean = false
   ) => {
     // Check if user is authenticated
     const currentToken = localStorage.getItem("token");
@@ -452,6 +457,7 @@ export const useCheckout = () => {
     paymentSuccess,
     createCheckoutSession,
     confirmPayment,
+    validatePayment, // Add this to expose the function
     createOrder,
     isAuthenticated,
     showLoginModal,
