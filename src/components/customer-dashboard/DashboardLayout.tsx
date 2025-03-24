@@ -314,7 +314,6 @@
 // };
 
 // export default DashboardLayout;
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
@@ -343,6 +342,15 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
+
+// Define User type with an optional phoneNumber property
+interface ExtendedUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  phoneNumber?: string;
+}
 
 // Define profile forms state types
 interface ProfileFormState {
@@ -378,15 +386,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const authContext = useAuth();
 
   // Create a development version that always has a user
-  const mockUser = {
+  const mockUser: ExtendedUser = {
     id: "dev-user",
     name: "John Doe",
     email: "john.doe@example.com",
     role: "customer",
+    phoneNumber: "",
   };
 
   // Use either the real user or the mock user in development
-  const user = isDevelopment ? authContext.user || mockUser : authContext.user;
+  const user = isDevelopment
+    ? (authContext.user as ExtendedUser | null) || mockUser
+    : (authContext.user as ExtendedUser | null);
   const logout = authContext.logout;
 
   // Form states
@@ -418,6 +429,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // We're keeping this even though it's not being used (to avoid changing functionality)
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -451,8 +463,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   // Close user menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (userMenuOpen && !event.target.closest(".user-menu-container")) {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Cast event.target to Element to use closest method
+      const target = event.target as Element;
+
+      // Check if target exists and if it doesn't have user-menu-container as parent
+      if (userMenuOpen && target && !target.closest(".user-menu-container")) {
         setUserMenuOpen(false);
       }
     };
@@ -529,7 +545,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           logout();
           window.location.href = "/login"; // Fallback direct navigation
         });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error in handleLogout function:", error);
       // Force logout and navigation
       logout();
@@ -587,11 +603,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       console.log("Profile update response:", response.data);
       setProfileSuccess("Profile updated successfully!");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Profile update error:", error);
       setProfileError(
-        error.response?.data?.message ||
-          "Failed to update profile. Please try again."
+        error &&
+          typeof error === "object" &&
+          "response" in error &&
+          error.response &&
+          typeof error.response === "object" &&
+          "data" in error.response &&
+          error.response.data &&
+          typeof error.response.data === "object" &&
+          "message" in error.response.data
+          ? String(error.response.data.message)
+          : "Failed to update profile. Please try again."
       );
     } finally {
       setUpdatingProfile(false);
@@ -639,11 +664,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         newPassword: "",
         confirmPassword: "",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Password change error:", error);
       setPasswordError(
-        error.response?.data?.message ||
-          "Failed to change password. Please verify your current password."
+        error &&
+          typeof error === "object" &&
+          "response" in error &&
+          error.response &&
+          typeof error.response === "object" &&
+          "data" in error.response &&
+          error.response.data &&
+          typeof error.response.data === "object" &&
+          "message" in error.response.data
+          ? String(error.response.data.message)
+          : "Failed to change password. Please verify your current password."
       );
     } finally {
       setChangingPassword(false);
