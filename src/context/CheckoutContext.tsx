@@ -69,6 +69,7 @@ const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) => {
   const [localOrderId, setLocalOrderId] = useState<string | null>(() =>
     localStorage.getItem("checkoutOrderId")
   );
+  // These state variables are used in validatePayment and confirmPayment methods
   const [paymentState, setPaymentState] = useState<string>("initial"); // 'initial', 'processing', 'confirmed', 'failed'
   const [lastPaymentIntentId, setLastPaymentIntentId] = useState<string | null>(
     null
@@ -85,6 +86,7 @@ const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) => {
     error,
     createCheckoutSession: apiCreateCheckoutSession,
     confirmPayment: apiConfirmPayment,
+    validatePayment: apiValidatePayment,
   } = useCheckout();
 
   // Sync hook values with local state when they change
@@ -163,7 +165,7 @@ const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) => {
         return { success: false, error: errorMessage };
       }
     },
-    []
+    [apiValidatePayment]
   );
 
   const createCheckoutSession = useCallback(
@@ -357,6 +359,7 @@ const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) => {
     error,
     createCheckoutSession,
     confirmPayment,
+    validatePayment,
     validateSession,
     debugCheckout,
   };
