@@ -15,6 +15,9 @@ export interface Order {
     price: number;
     image?: string;
   }[];
+  createdAt?: string;
+  updatedAt?: string;
+  totalAmount?: string;
 }
 
 interface OrderHistoryProps {
