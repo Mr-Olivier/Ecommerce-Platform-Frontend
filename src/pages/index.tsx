@@ -1,5 +1,5 @@
 // src/pages/index.tsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -11,7 +11,7 @@ import {
   ChevronUp,
   Clock,
   CheckCircle,
-  ArrowUp,
+  // Remove unused ArrowUp import
   ArrowRight,
   Sparkles,
 } from "lucide-react";
@@ -24,7 +24,7 @@ import HeroCarousel from "../components/hero/HeroCarousel";
 const LandingPage = () => {
   const { featuredProducts, topSellingProducts, loading } = useProduct();
   const [showAllFeatured, setShowAllFeatured] = useState(false);
-  const [showScrollTop, setShowScrollTop] = useState(false);
+  // Remove unused showScrollTop state
   const navigate = useNavigate();
 
   // Get only products marked as featured for the landing page
@@ -35,23 +35,7 @@ const LandingPage = () => {
   // Get top selling products for a new section
   const topSellers = topSellingProducts?.slice(0, 4) || [];
 
-  // Handle scroll to show/hide button
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Scroll to top function
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
+  // Remove unused scroll effect and showScrollTop state
 
   // Navigate to all products
   const goToAllProducts = () => {
@@ -124,9 +108,7 @@ const LandingPage = () => {
     },
   ];
 
-  const navigateToAllProducts = () => {
-    navigate("/products");
-  };
+  // Remove unused navigateToAllProducts function as we're using goToAllProducts
 
   return (
     <Layout>
@@ -327,7 +309,7 @@ const LandingPage = () => {
                       // Add any additional properties needed for the enhanced product card
                       originalPrice:
                         product.originalPrice ||
-                        (Math.random() > 0.7 ? product.price * 1.2 : null),
+                        (Math.random() > 0.7 ? product.price * 1.2 : undefined),
                     }}
                   />
                 ))}
@@ -413,22 +395,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Scroll to Top Button */}
-      {/* <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 p-4 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg z-50 cursor-pointer transition-colors duration-200"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <ArrowUp className="h-6 w-6" />
-          </motion.button>
-        )}
-      </AnimatePresence> */}
+      {/* Scroll to Top Button - Already commented out, but we also removed related code */}
     </Layout>
   );
 };
