@@ -14,8 +14,6 @@ import {
   Maximize2,
   LogOut,
   Code,
-  ThumbsUp,
-  ThumbsDown,
 } from "lucide-react";
 
 // Add animation keyframes for professional transitions
