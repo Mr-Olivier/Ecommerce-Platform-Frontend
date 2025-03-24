@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Product } from "../../types/Product";
-import ProductList from "../../components/ProductList";
+import AdminProductList from "../../components/dashboards/AdminProductList";
 import ProductFilters from "../../components/dashboards/ProductFilters";
 import ProductFormModal from "../../components/dashboards/ProductFormModal";
 import ProductDetailModal from "../../components/dashboards/ProductDetailModal";
@@ -246,11 +246,11 @@ const ProductManagement: React.FC = () => {
       />
 
       {/* Products Table */}
-      <ProductList
+      <AdminProductList
         products={filteredProducts}
         isLoading={isLoading}
-        onView={(product) => setViewProduct(product)}
-        onEdit={(product) => setSelectedProduct(product)}
+        onView={(product: Product) => setViewProduct(product)}
+        onEdit={(product: Product) => setSelectedProduct(product)}
         onDelete={handleDeleteProduct}
         currentPage={currentPage}
         totalProducts={totalProducts}
