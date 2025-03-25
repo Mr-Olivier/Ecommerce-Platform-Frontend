@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X, Upload, Image, Plus } from "lucide-react";
 import Modal from "../common/Modal";
-import { Product, ProductFormData } from "../../types/Product";
+import { Product, ProductFormData } from "../../types/Product"; // Add ProductFormData here
 import { createBlankProduct } from "../../utils/productApi";
 
 interface ProductFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (product: ProductFormData) => void;
+  onSubmit: (product: ProductFormData) => void; // Update this to use ProductFormData
   product: Product | null;
   categories: string[];
 }
@@ -19,9 +19,11 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   product,
   categories,
 }) => {
+  // Use ProductFormData for form state
   const [formData, setFormData] = useState<ProductFormData>(
     createBlankProduct()
   );
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [newSpecKey, setNewSpecKey] = useState("");
@@ -36,7 +38,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setFormData({
         ...createBlankProduct(),
         ...product,
-        // Ensure brand is correctly formatted for form
+        // Convert brand object to string for the form
         brand:
           typeof product.brand === "string"
             ? product.brand
