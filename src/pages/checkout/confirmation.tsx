@@ -5,7 +5,7 @@ import { CheckIcon, ClockIcon, TruckIcon, ReceiptIcon } from "lucide-react";
 import confetti from "canvas-confetti";
 
 const ConfirmationPage: React.FC = () => {
-  const [orderDetails, setOrderDetails] = useState({
+  const [orderDetails] = useState({
     orderNumber: "ORD-" + Math.floor(100000 + Math.random() * 900000),
     date: new Date().toLocaleDateString(),
     estimatedDelivery: new Date(
