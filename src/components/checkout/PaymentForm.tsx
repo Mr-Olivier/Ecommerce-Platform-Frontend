@@ -94,7 +94,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const [paypalData, setPaypalData] = useState<PaypalData | null>(null);
+  const [paypalData, _setPaypalData] = useState<PaypalData | null>(null);
   const [isCreatingPaypalSession, setIsCreatingPaypalSession] = useState(false);
 
   // Add this useEffect near the top of your PaymentForm component
@@ -353,7 +353,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ prevStep }) => {
   // Add this helper function to process payment only (not placing order)
   const processPaymentOnly = async (
     clientSecretStr: string,
-    orderIdStr?: string
+    _orderIdStr?: string
   ) => {
     try {
       console.log("Processing payment only...");
