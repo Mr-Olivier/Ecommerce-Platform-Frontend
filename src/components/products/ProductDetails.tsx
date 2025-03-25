@@ -1330,30 +1330,36 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         );
 
         if (currentItem) {
-          const imageUrl =
-            currentItem.product.images && currentItem.product.images.length > 0
-              ? `http://localhost:4000${currentItem.product.images[0]}`
-              : null;
+          // Check if we have an image before adding to cart
+          const hasImage =
+            currentItem.product.images && currentItem.product.images.length > 0;
 
-          // Create cart item with exact quantity from API response
-          const cartItem = {
-            id: currentItem.id,
-            productId: product.id,
-            name: product.name,
-            price:
-              typeof product.price === "string"
-                ? parseFloat(product.price)
-                : product.price,
-            quantity: currentItem.quantity, // Use quantity from API
-            image: imageUrl,
-            stockQuantity: product.stock || 10,
-            attributes: {},
-          };
+          if (hasImage) {
+            const imageUrl = `http://localhost:4000${currentItem.product.images[0]}`;
 
-          console.log("Adding to local cart:", cartItem);
+            // Create cart item with exact quantity from API response
+            const cartItem = {
+              id: currentItem.id,
+              productId: product.id,
+              name: product.name,
+              price:
+                typeof product.price === "string"
+                  ? parseFloat(product.price)
+                  : product.price,
+              quantity: currentItem.quantity, // Use quantity from API
+              image: imageUrl, // This will now always be a string
+              stockQuantity: product.stock || 10,
+              attributes: {},
+            };
 
-          // Add to cart context - just once!
-          addItem(cartItem);
+            console.log("Adding to local cart:", cartItem);
+
+            // Add to cart context - just once!
+            addItem(cartItem);
+          } else {
+            console.warn("Product has no images, skipping add to cart");
+            // You could also show a user message here
+          }
         }
 
         // Navigate to cart
