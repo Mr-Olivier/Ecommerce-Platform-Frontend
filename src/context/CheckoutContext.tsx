@@ -70,10 +70,10 @@ const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) => {
     localStorage.getItem("checkoutOrderId")
   );
   // These state variables are used in validatePayment and confirmPayment methods
-  const [paymentState, setPaymentState] = useState<string>("initial"); // 'initial', 'processing', 'confirmed', 'failed'
-  const [lastPaymentIntentId, setLastPaymentIntentId] = useState<string | null>(
-    null
-  );
+  const [_paymentState, setPaymentState] = useState<string>("initial"); // 'initial', 'processing', 'confirmed', 'failed'
+  const [_lastPaymentIntentId, setLastPaymentIntentId] = useState<
+    string | null
+  >(null);
 
   // For debugging: Track context renders
   console.log("🔄 CheckoutProvider rendering");
