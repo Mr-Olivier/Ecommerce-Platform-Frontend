@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import ProductList from "./ProductList";
+// import ProductList from "./ProductList";
 
 // Define types for product
 interface Product {
