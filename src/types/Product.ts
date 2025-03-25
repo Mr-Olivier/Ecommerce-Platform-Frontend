@@ -99,5 +99,10 @@ export interface ProductFilterOptions {
   isOnSale?: boolean;
 }
 
+// Add export here to make it available to other files
+export interface ProductFormData extends Omit<Product, "brand"> {
+  // Other properties remain the same...
+  brand: string | { id: string; name: string; slug: string };
+}
+
 // Helper type for product form data
-export type ProductFormData = Omit<Product, "id" | "createdAt" | "updatedAt">;
