@@ -331,6 +331,10 @@ generate_commit_message() {
             type="fix(products)"
             message="update product filters component"
             ;;
+        *components/products/ProductList.tsx)
+            type="fix(products)"
+            message="update product listing component"
+            ;;
         *components/SearchBar.tsx)
             type="fix(search)"
             message="update search functionality"
@@ -511,25 +515,41 @@ generate_commit_message() {
             type="fix(checkout)"
             message="update checkout page"
             ;;
-        *dashboards/AdminLayout.tsx)
+        *components/customer-dashboard/DashboardLayout.tsx)
+            type="fix(customer)"
+            message="update customer dashboard layout"
+            ;;
+        *components/customer-dashboard/OrderHistory.tsx)
+            type="fix(customer)"
+            message="update customer order history component"
+            ;;
+        *pages/customer/wishlist.tsx)
+            type="fix(wishlist)"
+            message="update customer wishlist page"
+            ;;
+        *components/dashboards/AdminLayout.tsx)
             type="fix(admin)"
             message="update admin dashboard layout"
             ;;
-        *dashboards/ProductDetailModal.tsx)
+        *components/dashboards/ProductDetailModal.tsx)
             type="feat(admin)"
             message="add product detail modal for admin"
             ;;
-        *dashboards/ProductFilters.tsx)
+        *components/dashboards/ProductFilters.tsx)
             type="feat(admin)"
             message="add product filtering capability"
             ;;
-        *dashboards/ProductFormModal.tsx)
+        *components/dashboards/ProductFormModal.tsx)
             type="feat(admin)"
             message="add product form modal for creating/editing products"
             ;;
-        *dashboards/ProductList.tsx)
+        *components/dashboards/ProductList.tsx)
             type="feat(admin)"
             message="add product listing component for admin"
+            ;;
+        *components/dashboards/AdminProductList.tsx)
+            type="feat(admin)"
+            message="add admin product listing component"
             ;;
         commit_changes.sh)
             type="chore(scripts)"
@@ -556,20 +576,29 @@ check_git_repo() {
 commit_and_push_changes() {
     check_git_repo
     
-    # Modified files from current git status
+    # Get modified files from git status
     modified_files=(
         "commit_changes.sh"
         "package-lock.json"
         "package.json"
+        "src/components/Auth/RegisterForm.tsx"
+        "src/components/SearchBar.tsx"
         "src/components/checkout/PaymentForm.tsx"
-        "src/components/common/ChatWidget.tsx"
-        "src/components/dashboards/AdminLayout.tsx"
+        "src/components/common/Footer.tsx"
+        "src/components/customer-dashboard/DashboardLayout.tsx"
+        "src/components/dashboards/ProductFormModal.tsx"
+        "src/components/products/ProductDetails.tsx"
         "src/context/CheckoutContext.tsx"
         "src/hooks/useAuth.ts"
-        "src/hooks/useCheckout.tsx"
-        "src/hooks/useOrder.tsx"
-        "src/pages/admin/orders.tsx"
+        "src/hooks/useProduct.ts"
+        "src/pages/checkout/confirmation.tsx"
         "src/pages/customer/orders.tsx"
+        "src/types/Product.ts"
+        "src/utils/productApi.ts"
+    )
+    
+    # Untracked files
+    untracked_files=(
     )
     
     # Process modified files
@@ -581,6 +610,18 @@ commit_and_push_changes() {
             echo "Committed modified file: $file with message - $commit_message"
         else
             echo "Warning: Modified file $file does not exist"
+        fi
+    done
+    
+    # Process untracked files
+    for file in "${untracked_files[@]}"; do
+        if [ -f "$file" ] || [ -d "$file" ]; then
+            commit_message=$(generate_commit_message "$file")
+            git add "$file"
+            git commit -m "$commit_message"
+            echo "Committed new file: $file with message - $commit_message"
+        else
+            echo "Warning: Untracked file $file does not exist"
         fi
     done
     
