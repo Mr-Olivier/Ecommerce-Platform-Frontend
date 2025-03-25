@@ -15,7 +15,7 @@ enum ProductCategory {
 }
 
 export const useProduct = () => {
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [_featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
