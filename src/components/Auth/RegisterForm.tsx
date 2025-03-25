@@ -59,7 +59,7 @@ const RegisterForm = () => {
     type: "success" | "error";
     message: string;
   } | null>(null);
-  const [registeredUserData, setRegisteredUserData] = useState<any>(null);
+  const [_registeredUserData, setRegisteredUserData] = useState<any>(null);
 
   const navigate = useNavigate();
 
