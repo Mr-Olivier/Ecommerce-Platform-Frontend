@@ -10,7 +10,7 @@ const OrdersPage: React.FC = () => {
   const { orders, fetchOrders } = useOrder();
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [_selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderDetails, setOrderDetails] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [detailsLoading, setDetailsLoading] = useState(false);
