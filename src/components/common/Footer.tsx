@@ -11,7 +11,6 @@ import {
   Mail,
   ArrowRight,
   Clock,
-  CreditCard,
   ChevronUp,
 } from "lucide-react";
 // Import the ChatWidget component
