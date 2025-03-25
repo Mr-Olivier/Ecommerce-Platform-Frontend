@@ -29,8 +29,8 @@ export function useAuth() {
 
     // Create a state that will use the real auth data
     const [user, setUser] = useState<User | null>(storedUser);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [loading] = useState(false);
+    const [error] = useState<string | null>(null);
 
     // Update user if localStorage/sessionStorage changes
     useEffect(() => {
