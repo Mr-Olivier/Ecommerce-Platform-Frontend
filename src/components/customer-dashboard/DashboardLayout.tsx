@@ -315,7 +315,7 @@
 
 // export default DashboardLayout;
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../hooks/useAuth";
 import {
@@ -430,7 +430,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // We're keeping this even though it's not being used (to avoid changing functionality)
-  const navigate = useNavigate();
+
   const location = useLocation();
 
   // Update user form data when user changes (useful after profile updates)
