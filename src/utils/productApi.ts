@@ -77,6 +77,7 @@ export const deleteProduct = async (id: string): Promise<boolean> => {
 };
 
 // Function to create a blank product template with default values
+// src/utils/productApi.ts
 export const createBlankProduct = (): ProductFormData => ({
   name: "",
   category: "",
@@ -84,12 +85,17 @@ export const createBlankProduct = (): ProductFormData => ({
   stock: 0,
   rating: 0,
   reviews: 0,
-  status: "draft",
+  status: "draft" as const,
   description: "",
   shortDescription: "",
   image: "",
   sku: "",
   tags: [],
+  // Add the missing required properties
+  id: "", // Add this
+  brand: "", // Add this
+  createdAt: new Date().toISOString(), // Add this
+  updatedAt: new Date().toISOString(), // Add this
 });
 
 // Add this to your productApi.ts at the end of the file
