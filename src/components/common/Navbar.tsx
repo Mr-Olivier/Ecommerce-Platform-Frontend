@@ -663,19 +663,388 @@
 
 // export default Navbar;
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// // src/components/common/Navbar.tsx
+// import React, { useState, useEffect } from "react";
+// import { Link, useLocation } from "react-router-dom";
+// import CategoryMegaMenu from "../categories/CategoryMegaMenu";
+// import MobileCategoryMenu from "../categories/MobileCategoryMenu";
+// import SearchBar from "../SearchBar";
+// import { CartIcon } from "../cart/CartIcon"; // Updated import to match your existing component
+// import { useAuth } from "../../hooks/useAuth";
+
+// const Navbar: React.FC = () => {
+//   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+//   const [isMobileCategoryMenuOpen, setIsMobileCategoryMenuOpen] =
+//     useState(false);
+//   const [isScrolled, setIsScrolled] = useState(false);
+//   const { isAuthenticated, logout } = useAuth();
+//   const location = useLocation();
+
+//   // Close mobile menu when changing routes
+//   useEffect(() => {
+//     setIsMobileMenuOpen(false);
+//     setIsMobileCategoryMenuOpen(false);
+//   }, [location.pathname]);
+
+//   // Handle scroll for sticky header effect
+//   useEffect(() => {
+//     const handleScroll = () => {
+//       setIsScrolled(window.scrollY > 20);
+//     };
+
+//     window.addEventListener("scroll", handleScroll);
+//     return () => window.removeEventListener("scroll", handleScroll);
+//   }, []);
+
+//   return (
+//     <header
+//       className={`w-full z-40 transition-all duration-200 ${
+//         isScrolled ? "sticky top-0 shadow-md bg-white" : "bg-white"
+//       }`}
+//     >
+//       {/* Top Bar */}
+//       <div className="bg-gray-900 text-white py-2 text-sm">
+//         <div className="container mx-auto px-4 flex justify-between items-center">
+//           <div className="hidden md:block">
+//             <span>Free shipping on orders over $50</span>
+//           </div>
+//           <div className="flex space-x-4">
+//             <a href="tel:+1234567890" className="hover:text-gray-300">
+//               <span className="hidden sm:inline">Call us: </span>(123) 456-7890
+//             </a>
+//             <span className="hidden md:inline">|</span>
+//             <a href="#" className="hover:text-gray-300 hidden md:block">
+//               Store Locator
+//             </a>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Main Navigation */}
+//       <div className="container mx-auto px-4">
+//         <div className="flex items-center justify-between py-4">
+//           {/* Logo */}
+//           <div className="flex-shrink-0">
+//             <Link to="/" className="text-xl font-bold text-gray-800">
+//               ElectroTech
+//             </Link>
+//           </div>
+
+//           {/* Search Bar - Desktop */}
+//           <div className="hidden md:block w-full max-w-xl mx-4">
+//             <SearchBar />
+//           </div>
+
+//           {/* User Actions */}
+//           <div className="flex items-center">
+//             {/* User Menu - Desktop */}
+//             <div className="hidden md:flex items-center space-x-5">
+//               {isAuthenticated ? (
+//                 <div className="relative group">
+//                   <button className="flex items-center text-gray-700 hover:text-blue-600">
+//                     <span></span>
+//                     <svg
+//                       className="ml-1 h-4 w-4"
+//                       fill="none"
+//                       viewBox="0 0 24 24"
+//                       stroke="currentColor"
+//                     >
+//                       <path
+//                         strokeLinecap="round"
+//                         strokeLinejoin="round"
+//                         strokeWidth={2}
+//                         d="M19 9l-7 7-7-7"
+//                       />
+//                     </svg>
+//                   </button>
+//                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
+//                     <Link
+//                       to="/user/profile"
+//                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+//                     >
+//                       My Profile
+//                     </Link>
+//                     <Link
+//                       to="/user/orders"
+//                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+//                     >
+//                       My Orders
+//                     </Link>
+//                     <Link
+//                       to="/user/wishlist"
+//                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+//                     >
+//                       Wishlist
+//                     </Link>
+//                     <button
+//                       onClick={logout}
+//                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
+//                     >
+//                       Sign Out
+//                     </button>
+//                   </div>
+//                 </div>
+//               ) : (
+//                 <>
+//                   <Link
+//                     to="/login"
+//                     className="text-gray-700 hover:text-blue-600"
+//                   >
+//                     Sign In
+//                   </Link>
+//                   <Link
+//                     to="/register"
+//                     className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+//                   >
+//                     Sign Up
+//                   </Link>
+//                 </>
+//               )}
+//             </div>
+
+//             {/* Cart Icon - Using your existing component */}
+//             <div className="ml-5">
+//               <CartIcon />
+//             </div>
+
+//             {/* Mobile menu button */}
+//             <button
+//               className="md:hidden ml-4 text-gray-700 hover:text-blue-600 focus:outline-none"
+//               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+//             >
+//               <svg
+//                 className="h-6 w-6"
+//                 fill="none"
+//                 viewBox="0 0 24 24"
+//                 stroke="currentColor"
+//               >
+//                 <path
+//                   strokeLinecap="round"
+//                   strokeLinejoin="round"
+//                   strokeWidth={2}
+//                   d={
+//                     isMobileMenuOpen
+//                       ? "M6 18L18 6M6 6l12 12"
+//                       : "M4 6h16M4 12h16M4 18h16"
+//                   }
+//                 />
+//               </svg>
+//             </button>
+//           </div>
+//         </div>
+
+//         {/* Search Bar - Mobile */}
+//         <div className="md:hidden pb-4">
+//           <SearchBar />
+//         </div>
+//       </div>
+
+//       {/* Navigation Links */}
+//       <nav className="bg-gray-50 border-y border-gray-200">
+//         <div className="container mx-auto px-4">
+//           <div className="flex items-center h-12">
+//             {/* Desktop Menu */}
+//             <div className="hidden md:flex items-center space-x-6 h-full">
+//               <Link
+//                 to="/"
+//                 className="text-gray-700 hover:text-blue-600 h-full flex items-center"
+//               >
+//                 Home
+//               </Link>
+//               <CategoryMegaMenu />
+//               <Link
+//                 to="/products"
+//                 className="text-gray-700 hover:text-blue-600 h-full flex items-center"
+//               >
+//                 All Products
+//               </Link>
+//               <Link
+//                 to="/deals"
+//                 className="text-gray-700 hover:text-blue-600 h-full flex items-center"
+//               >
+//                 Deals
+//               </Link>
+//               <Link
+//                 to="/products"
+//                 className="text-gray-700 hover:text-blue-600 h-full flex items-center"
+//               >
+//                 New Arrivals
+//               </Link>
+//               <Link
+//                 to="/contact"
+//                 className="text-gray-700 hover:text-blue-600 h-full flex items-center"
+//               >
+//                 Contact Us
+//               </Link>
+//             </div>
+
+//             {/* Mobile Category Button */}
+//             <div className="md:hidden flex items-center h-full">
+//               <button
+//                 className="flex items-center text-gray-700 hover:text-blue-600 focus:outline-none"
+//                 onClick={() => setIsMobileCategoryMenuOpen(true)}
+//               >
+//                 <svg
+//                   className="h-5 w-5 mr-1"
+//                   fill="none"
+//                   viewBox="0 0 24 24"
+//                   stroke="currentColor"
+//                 >
+//                   <path
+//                     strokeLinecap="round"
+//                     strokeLinejoin="round"
+//                     strokeWidth={2}
+//                     d="M4 6h16M4 12h16M4 18h16"
+//                   />
+//                 </svg>
+//                 Categories
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       </nav>
+
+//       {/* Mobile Navigation Menu */}
+//       {isMobileMenuOpen && (
+//         <div className="md:hidden bg-white shadow-lg">
+//           <div className="px-4 py-3 space-y-3">
+//             <Link
+//               to="/"
+//               className="block text-gray-700 hover:text-blue-600"
+//               onClick={() => setIsMobileMenuOpen(false)}
+//             >
+//               Home
+//             </Link>
+//             <button
+//               className="flex items-center text-gray-700 hover:text-blue-600 w-full focus:outline-none"
+//               onClick={() => {
+//                 setIsMobileMenuOpen(false);
+//                 setIsMobileCategoryMenuOpen(true);
+//               }}
+//             >
+//               <span>Categories</span>
+//               <svg
+//                 className="ml-auto h-5 w-5"
+//                 fill="none"
+//                 viewBox="0 0 24 24"
+//                 stroke="currentColor"
+//               >
+//                 <path
+//                   strokeLinecap="round"
+//                   strokeLinejoin="round"
+//                   strokeWidth={2}
+//                   d="M9 5l7 7-7 7"
+//                 />
+//               </svg>
+//             </button>
+//             <Link
+//               to="/products"
+//               className="block text-gray-700 hover:text-blue-600"
+//               onClick={() => setIsMobileMenuOpen(false)}
+//             >
+//               All Products
+//             </Link>
+//             <Link
+//               to="/deals"
+//               className="block text-gray-700 hover:text-blue-600"
+//               onClick={() => setIsMobileMenuOpen(false)}
+//             >
+//               Deals
+//             </Link>
+//             <Link
+//               to="/new-arrivals"
+//               className="block text-gray-700 hover:text-blue-600"
+//               onClick={() => setIsMobileMenuOpen(false)}
+//             >
+//               New Arrivals
+//             </Link>
+//             <Link
+//               to="/contact"
+//               className="block text-gray-700 hover:text-blue-600"
+//               onClick={() => setIsMobileMenuOpen(false)}
+//             >
+//               Contact Us
+//             </Link>
+
+//             <div className="border-t border-gray-200 pt-3">
+//               {isAuthenticated ? (
+//                 <>
+//                   <Link
+//                     to="/user/profile"
+//                     className="block py-2 text-gray-700 hover:text-blue-600"
+//                     onClick={() => setIsMobileMenuOpen(false)}
+//                   >
+//                     My Profile
+//                   </Link>
+//                   <Link
+//                     to="/user/orders"
+//                     className="block py-2 text-gray-700 hover:text-blue-600"
+//                     onClick={() => setIsMobileMenuOpen(false)}
+//                   >
+//                     My Orders
+//                   </Link>
+//                   <Link
+//                     to="/user/wishlist"
+//                     className="block py-2 text-gray-700 hover:text-blue-600"
+//                     onClick={() => setIsMobileMenuOpen(false)}
+//                   >
+//                     Wishlist
+//                   </Link>
+//                   <button
+//                     onClick={() => {
+//                       logout();
+//                       setIsMobileMenuOpen(false);
+//                     }}
+//                     className="block w-full text-left py-2 text-gray-700 hover:text-blue-600 focus:outline-none"
+//                   >
+//                     Sign Out
+//                   </button>
+//                 </>
+//               ) : (
+//                 <div className="flex flex-col space-y-3">
+//                   <Link
+//                     to="/auth/login"
+//                     className="text-gray-700 hover:text-blue-600"
+//                     onClick={() => setIsMobileMenuOpen(false)}
+//                   >
+//                     Sign In
+//                   </Link>
+//                   <Link
+//                     to="/auth/register"
+//                     className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-center"
+//                     onClick={() => setIsMobileMenuOpen(false)}
+//                   >
+//                     Sign Up
+//                   </Link>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Mobile Category Menu */}
+//       <MobileCategoryMenu
+//         isOpen={isMobileCategoryMenuOpen}
+//         onClose={() => setIsMobileCategoryMenuOpen(false)}
+//       />
+//     </header>
+//   );
+// };
+
+// export default Navbar;
+
 // src/components/common/Navbar.tsx
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import CategoryMegaMenu from "../categories/CategoryMegaMenu";
-import MobileCategoryMenu from "../categories/MobileCategoryMenu";
 import SearchBar from "../SearchBar";
 import { CartIcon } from "../cart/CartIcon"; // Updated import to match your existing component
 import { useAuth } from "../../hooks/useAuth";
 
 const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileCategoryMenuOpen, setIsMobileCategoryMenuOpen] =
-    useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { isAuthenticated, logout } = useAuth();
   const location = useLocation();
@@ -683,7 +1052,6 @@ const Navbar: React.FC = () => {
   // Close mobile menu when changing routes
   useEffect(() => {
     setIsMobileMenuOpen(false);
-    setIsMobileCategoryMenuOpen(false);
   }, [location.pathname]);
 
   // Handle scroll for sticky header effect
@@ -742,7 +1110,7 @@ const Navbar: React.FC = () => {
               {isAuthenticated ? (
                 <div className="relative group">
                   <button className="flex items-center text-gray-700 hover:text-blue-600">
-                    <span></span>
+                    <span>Account</span>
                     <svg
                       className="ml-1 h-4 w-4"
                       fill="none"
@@ -839,128 +1207,61 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Links */}
+      {/* Navigation Links - Simplified to 3 items only */}
       <nav className="bg-gray-50 border-y border-gray-200">
         <div className="container mx-auto px-4">
-          <div className="flex items-center h-12">
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-6 h-full">
+          <div className="flex items-center justify-center h-12">
+            {/* Desktop Menu - Only 3 items */}
+            <div className="hidden md:flex items-center space-x-12 h-full">
               <Link
                 to="/"
-                className="text-gray-700 hover:text-blue-600 h-full flex items-center"
+                className="text-gray-700 hover:text-blue-600 h-full flex items-center font-medium transition-colors duration-200"
               >
                 Home
               </Link>
-              <CategoryMegaMenu />
               <Link
                 to="/products"
-                className="text-gray-700 hover:text-blue-600 h-full flex items-center"
+                className="text-gray-700 hover:text-blue-600 h-full flex items-center font-medium transition-colors duration-200"
               >
                 All Products
               </Link>
               <Link
-                to="/deals"
-                className="text-gray-700 hover:text-blue-600 h-full flex items-center"
-              >
-                Deals
-              </Link>
-              <Link
-                to="/products"
-                className="text-gray-700 hover:text-blue-600 h-full flex items-center"
-              >
-                New Arrivals
-              </Link>
-              <Link
                 to="/contact"
-                className="text-gray-700 hover:text-blue-600 h-full flex items-center"
+                className="text-gray-700 hover:text-blue-600 h-full flex items-center font-medium transition-colors duration-200"
               >
                 Contact Us
               </Link>
             </div>
 
-            {/* Mobile Category Button */}
+            {/* Mobile - Show simplified menu button */}
             <div className="md:hidden flex items-center h-full">
-              <button
-                className="flex items-center text-gray-700 hover:text-blue-600 focus:outline-none"
-                onClick={() => setIsMobileCategoryMenuOpen(true)}
-              >
-                <svg
-                  className="h-5 w-5 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-                Categories
-              </button>
+              <span className="text-gray-700 font-medium">Menu</span>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Navigation Menu */}
+      {/* Mobile Navigation Menu - Simplified */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white shadow-lg">
           <div className="px-4 py-3 space-y-3">
             <Link
               to="/"
-              className="block text-gray-700 hover:text-blue-600"
+              className="block text-gray-700 hover:text-blue-600 py-2 font-medium"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Home
             </Link>
-            <button
-              className="flex items-center text-gray-700 hover:text-blue-600 w-full focus:outline-none"
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                setIsMobileCategoryMenuOpen(true);
-              }}
-            >
-              <span>Categories</span>
-              <svg
-                className="ml-auto h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
             <Link
               to="/products"
-              className="block text-gray-700 hover:text-blue-600"
+              className="block text-gray-700 hover:text-blue-600 py-2 font-medium"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               All Products
             </Link>
             <Link
-              to="/deals"
-              className="block text-gray-700 hover:text-blue-600"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Deals
-            </Link>
-            <Link
-              to="/new-arrivals"
-              className="block text-gray-700 hover:text-blue-600"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              New Arrivals
-            </Link>
-            <Link
               to="/contact"
-              className="block text-gray-700 hover:text-blue-600"
+              className="block text-gray-700 hover:text-blue-600 py-2 font-medium"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Contact Us
@@ -1003,14 +1304,14 @@ const Navbar: React.FC = () => {
               ) : (
                 <div className="flex flex-col space-y-3">
                   <Link
-                    to="/auth/login"
+                    to="/login"
                     className="text-gray-700 hover:text-blue-600"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Sign In
                   </Link>
                   <Link
-                    to="/auth/register"
+                    to="/register"
                     className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-center"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -1022,17 +1323,13 @@ const Navbar: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Mobile Category Menu */}
-      <MobileCategoryMenu
-        isOpen={isMobileCategoryMenuOpen}
-        onClose={() => setIsMobileCategoryMenuOpen(false)}
-      />
     </header>
   );
 };
 
 export default Navbar;
+
+///////////////////////////////////////////////////////////////////////////////////////
 
 // // src/components/common/Navbar.tsx
 // import { useState, useEffect } from "react";
