@@ -1484,10 +1484,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         />
       )}
 
-      <RelatedProducts
+      {/* <RelatedProducts
         category={product.category}
         currentProductId={product.id}
-      />
+      /> */}
     </div>
   );
 };
