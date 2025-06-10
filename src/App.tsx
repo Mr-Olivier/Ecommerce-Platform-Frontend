@@ -1,4 +1,3 @@
-// App.tsx - Modified version with customer dashboard routes and professional 404 page
 import {
   BrowserRouter as Router,
   Routes,
