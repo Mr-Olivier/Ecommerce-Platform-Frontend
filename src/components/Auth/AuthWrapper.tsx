@@ -1,4 +1,3 @@
-// src/components/auth/AuthWrapper.tsx
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
